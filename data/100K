@@ -1,0 +1,4527 @@
+NAME := KarbowskiJakub
+
+CW_DIRS := $(wildcard cw*)
+TARS := $(CW_DIRS:cw%=$(NAME)-cw%.tar.gz)
+ALL_FILES := $(shell find cw*)
+EXCLUDE := build .*
+
+.PHONY: all
+all: $(TARS)
+
+.PHONY: clean
+clean:
+	rm -f $(TARS)
+
+$(NAME)-cw%.tar.gz: cw% $(ALL_FILES)
+	cd $< && tar czf ../$@ $(EXCLUDE:%=--exclude='%') $(NAME)
+
+# USER CONFIG
+BUILD_DIR ?= build
+OUT_DIR ?= $(BUILD_DIR)/out
+CFLAGS += -Wall -Werror
+# -----------
+
+OBJ_DIR := $(BUILD_DIR)/obj
+STATIC_DIR := $(OUT_DIR)/static
+SHARED_DIR := $(OUT_DIR)/shared
+
+SRC_DIR := src
+INC_DIR := $(SRC_DIR)/inc
+
+SRCS := $(shell find $(SRC_DIR) -type f -and -name "*.c" -print)
+HDRS := $(shell find $(INC_DIR) -type f -and -name "*.h" -print)
+OBJS := $(SRCS:%.c=$(OBJ_DIR)/%.o)
+
+CFLAGS += -I$(INC_DIR)
+
+
+.PHONY: all
+all: static shared
+
+.PHONY: help
+help:
+	@echo 'make all       - compile everything'
+	@echo 'make static    - compile static lib'
+	@echo 'make shared    - compile shared lib'
+	@echo 'make static_Ox - compile static lib with -Ox flag'
+	@echo 'make shared_Ox - compile shared lib with -Ox flag'
+
+# default O level for static
+.PHONY: static
+static: static_O2
+
+# default O level for shared
+.PHONY: shared
+shared: shared_O2
+
+
+# all possible O levels for static
+
+.PHONY: static_O0
+static_O0: $(STATIC_DIR)/libzad1O0.a
+
+.PHONY: static_O1
+static_O1: $(STATIC_DIR)/libzad1O1.a
+
+.PHONY: static_O2
+static_O2: $(STATIC_DIR)/libzad1O2.a
+
+.PHONY: static_O3
+static_O3: $(STATIC_DIR)/libzad1O3.a
+
+.PHONY: static_Os
+static_Os: $(STATIC_DIR)/libzad1Os.a
+
+
+# all possible O levels for shared
+
+.PHONY: shared_O0
+shared_O0: $(SHARED_DIR)/libzad1O0.so
+
+.PHONY: shared_O1
+shared_O1: $(SHARED_DIR)/libzad1O1.so
+
+.PHONY: shared_O2
+shared_O2: $(SHARED_DIR)/libzad1O2.so
+
+.PHONY: shared_O3
+shared_O3: $(SHARED_DIR)/libzad1O3.so
+
+.PHONY: shared_Os
+shared_Os: $(SHARED_DIR)/libzad1Os.so
+
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+# all possible O levels for objs
+
+$(OBJ_DIR)/%.O0.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -fPIC -O0 -o $@ $<
+
+$(OBJ_DIR)/%.O1.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -fPIC -O1 -o $@ $<
+
+$(OBJ_DIR)/%.O2.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -fPIC -O2 -o $@ $<
+
+$(OBJ_DIR)/%.O3.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -fPIC -O3 -o $@ $<
+
+$(OBJ_DIR)/%.Os.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -fPIC -Os -o $@ $<
+
+
+# actual static libs
+
+$(STATIC_DIR)/libzad1O0.a: $(OBJS:.o=.O0.o)
+	@mkdir -p $(dir $@)
+	ar rsc $@ $^
+
+$(STATIC_DIR)/libzad1O1.a: $(OBJS:.o=.O1.o)
+	@mkdir -p $(dir $@)
+	ar rsc $@ $^
+
+$(STATIC_DIR)/libzad1O2.a: $(OBJS:.o=.O2.o)
+	@mkdir -p $(dir $@)
+	ar rsc $@ $^
+
+$(STATIC_DIR)/libzad1O3.a: $(OBJS:.o=.O3.o)
+	@mkdir -p $(dir $@)
+	ar rsc $@ $^
+
+$(STATIC_DIR)/libzad1Os.a: $(OBJS:.o=.Os.o)
+	@mkdir -p $(dir $@)
+	ar rsc $@ $^
+
+
+# actual shared libs
+
+$(SHARED_DIR)/libzad1O0.so: $(OBJS:.o=.O0.o)
+	@mkdir -p $(dir $@)
+	$(CC) -shared -o $@ $^
+
+$(SHARED_DIR)/libzad1O1.so: $(OBJS:.o=.O1.o)
+	@mkdir -p $(dir $@)
+	$(CC) -shared -o $@ $^
+
+$(SHARED_DIR)/libzad1O2.so: $(OBJS:.o=.O2.o)
+	@mkdir -p $(dir $@)
+	$(CC) -shared -o $@ $^
+
+$(SHARED_DIR)/libzad1O3.so: $(OBJS:.o=.O3.o)
+	@mkdir -p $(dir $@)
+	$(CC) -shared -o $@ $^
+
+$(SHARED_DIR)/libzad1Os.so: $(OBJS:.o=.Os.o)
+	@mkdir -p $(dir $@)
+	$(CC) -shared -o $@ $^
+
+# USER CONFIG
+BUILD_DIR ?= build
+OUT_DIR ?= $(BUILD_DIR)/out
+BENCH_DIR ?= $(OUT_DIR)/bench
+OLEVEL ?= 2
+CFLAGS += -Wall -Werror
+LDFLAGS +=
+# -----------
+
+OBJ_DIR := $(BUILD_DIR)/obj
+
+SRC_DIR := src
+INC_DIR := $(SRC_DIR)/inc
+
+ZAD1_DIR := $(PWD)/../zad1
+ZAD1_INC_DIR := $(ZAD1_DIR)/src/inc
+ZAD1_STATIC_LIB_DIR := $(ZAD1_DIR)/build/out/static
+ZAD1_SHARED_LIB_DIR := $(ZAD1_DIR)/build/out/shared
+
+INC_DIRS := $(INC_DIR) $(ZAD1_INC_DIR)
+SRCS := $(shell find $(SRC_DIR) -type f -and -name "*.c" -print)
+HDRS := $(shell find $(INC_DIRS) -type f -and -name "*.h" -print)
+OBJS := $(SRCS:%.c=$(OBJ_DIR)/%.o)
+
+CFLAGS += -Wp,$(INC_DIRS:%=-I%)
+
+
+.PHONY: all
+all: zad2
+
+.PHONY: help
+help:
+	@echo 'DO NOT USE -j !!! (please...)'
+	@echo './RUN [ARGS...]         - compile and run with ARGS'
+	@echo 'make clean all OLEVEL=x - compile with -Ox (0, 1, 2, 3, s)'
+	@echo 'make test               - run example'
+	@echo 'make bench              - run benchmarks'
+
+.PHONY: test
+test: zad2
+	$(OUT_DIR)/zad2 create_table 2 wc_files Makefile RUN remove_block 0 wc_files src/main.c
+
+.PHONY: bench
+bench: raport2.txt results3a.txt results3b.txt
+
+
+.PHONY: zad2
+zad2: zad2_static_O$(OLEVEL)
+	cp $(OUT_DIR)/$< $(OUT_DIR)/$@
+
+
+.PHONY: zad2_static_O%
+zad2_static_O%:
+	$(MAKE) deps_static_$(shell echo $@ | cut -d_ -f3)
+	$(MAKE) $(OUT_DIR)/$@
+
+.PHONY: zad2_shared_O%
+zad2_shared_O%:
+	$(MAKE) deps_shared_$(shell echo $@ | cut -d_ -f3)
+	$(MAKE) $(OUT_DIR)/$@
+
+.PHONY: zad2_dll_O%
+zad2_dll_O%:
+	$(MAKE) deps_shared_$(shell echo $@ | cut -d_ -f3)
+	$(MAKE) $(OUT_DIR)/$@
+
+
+.PHONY: deps_static_O%
+deps_static_O%:
+	cd $(ZAD1_DIR) && $(MAKE) static_$(shell echo $@ | cut -d_ -f3)
+
+.PHONY: deps_shared_O%
+deps_shared_O%:
+	cd $(ZAD1_DIR) && $(MAKE) shared_$(shell echo $@ | cut -d_ -f3)
+
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+raport2.txt: $(BENCH_DIR)/static_O$(OLEVEL).txt
+	cat $^ > $@
+
+results3a.txt: $(BENCH_DIR)/static_O$(OLEVEL).txt $(BENCH_DIR)/shared_O$(OLEVEL).txt $(BENCH_DIR)/dll_O$(OLEVEL).txt
+	echo 'OLEVEL=$(OLEVEL)' > $@
+
+	echo '' >> $@
+	echo 'STATIC:' >> $@
+	cat $(BENCH_DIR)/static_O$(OLEVEL).txt >> $@
+
+	echo '' >> $@
+	echo 'SHARED:' >> $@
+	cat $(BENCH_DIR)/shared_O$(OLEVEL).txt >> $@
+
+	echo '' >> $@
+	echo 'DLL:' >> $@
+	cat $(BENCH_DIR)/dll_O$(OLEVEL).txt >> $@
+
+results3b.txt: $(BENCH_DIR)/static_O0.txt $(BENCH_DIR)/static_O1.txt $(BENCH_DIR)/static_O2.txt $(BENCH_DIR)/static_O3.txt $(BENCH_DIR)/static_Os.txt $(BENCH_DIR)/shared_O0.txt $(BENCH_DIR)/shared_O1.txt $(BENCH_DIR)/shared_O2.txt $(BENCH_DIR)/shared_O3.txt $(BENCH_DIR)/shared_Os.txt $(BENCH_DIR)/dll_O0.txt $(BENCH_DIR)/dll_O1.txt $(BENCH_DIR)/dll_O2.txt $(BENCH_DIR)/dll_O3.txt $(BENCH_DIR)/dll_Os.txt
+	echo 'STATIC -O0:' > $@
+	cat $(BENCH_DIR)/static_O0.txt >> $@
+
+	echo '' >> $@
+	echo 'STATIC -O1:' >> $@
+	cat $(BENCH_DIR)/static_O1.txt >> $@
+
+	echo '' >> $@
+	echo 'STATIC -O2:' >> $@
+	cat $(BENCH_DIR)/static_O2.txt >> $@
+
+	echo '' >> $@
+	echo 'STATIC -O3:' >> $@
+	cat $(BENCH_DIR)/static_O3.txt >> $@
+
+	echo '' >> $@
+	echo 'STATIC -Os:' >> $@
+	cat $(BENCH_DIR)/static_Os.txt >> $@
+
+
+	echo '' >> $@
+	echo 'SHARED -O0:' >> $@
+	cat $(BENCH_DIR)/shared_O0.txt >> $@
+
+	echo '' >> $@
+	echo 'SHARED -O1:' >> $@
+	cat $(BENCH_DIR)/shared_O1.txt >> $@
+
+	echo '' >> $@
+	echo 'SHARED -O2:' >> $@
+	cat $(BENCH_DIR)/shared_O2.txt >> $@
+
+	echo '' >> $@
+	echo 'SHARED -O3:' >> $@
+	cat $(BENCH_DIR)/shared_O3.txt >> $@
+
+	echo '' >> $@
+	echo 'SHARED -Os:' >> $@
+	cat $(BENCH_DIR)/shared_Os.txt >> $@
+
+
+	echo '' >> $@
+	echo 'DLL -O0:' >> $@
+	cat $(BENCH_DIR)/dll_O0.txt >> $@
+
+	echo '' >> $@
+	echo 'DLL -O1:' >> $@
+	cat $(BENCH_DIR)/dll_O1.txt >> $@
+
+	echo '' >> $@
+	echo 'DLL -O2:' >> $@
+	cat $(BENCH_DIR)/dll_O2.txt >> $@
+
+	echo '' >> $@
+	echo 'DLL -O3:' >> $@
+	cat $(BENCH_DIR)/dll_O3.txt >> $@
+
+	echo '' >> $@
+	echo 'DLL -Os:' >> $@
+	cat $(BENCH_DIR)/dll_Os.txt >> $@
+
+
+$(BENCH_DIR)/static_O%.txt: zad2_static_O%
+	@mkdir -p $(dir $@)
+	$(OUT_DIR)/$< bench $(shell find .. -name "*.c" -or -name "*.h") > $@
+
+$(BENCH_DIR)/shared_O%.txt: zad2_shared_O%
+	@mkdir -p $(dir $@)
+	LD_LIBRARY_PATH="$(ZAD1_SHARED_LIB_DIR):$(LD_LIBRARY_PATH)" $(OUT_DIR)/$< bench $(shell find .. -name "*.c" -or -name "*.h") > $@
+
+$(BENCH_DIR)/dll_O%.txt: zad2_dll_O%
+	@mkdir -p $(dir $@)
+	LD_LIBRARY_PATH="$(ZAD1_SHARED_LIB_DIR):$(LD_LIBRARY_PATH)" $(OUT_DIR)/$< bench $(shell find .. -name "*.c" -or -name "*.h") > $@
+
+
+$(OBJ_DIR)/%.O0.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -O0 -c -o $@ $<
+
+$(OBJ_DIR)/%.O1.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -O1 -c -o $@ $<
+
+$(OBJ_DIR)/%.O2.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -O2 -c -o $@ $<
+
+$(OBJ_DIR)/%.O3.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -O3 -c -o $@ $<
+
+$(OBJ_DIR)/%.Os.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Os -c -o $@ $<
+
+
+$(OBJ_DIR)/%.O0.dll.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DZAD1_LIB_DLL=1,-DZAD1_LIB_PATH="\"$(ZAD1_SHARED_LIB_DIR)/libzad1O0.so\"",-DZAD1_LIB_FILE="\"libzad1O0.so\"" -O0 -c -o $@ $<
+
+$(OBJ_DIR)/%.O1.dll.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DZAD1_LIB_DLL=1,-DZAD1_LIB_PATH="\"$(ZAD1_SHARED_LIB_DIR)/libzad1O1.so\"",-DZAD1_LIB_FILE="\"libzad1O1.so\"" -O1 -c -o $@ $<
+
+$(OBJ_DIR)/%.O2.dll.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DZAD1_LIB_DLL=1,-DZAD1_LIB_PATH="\"$(ZAD1_SHARED_LIB_DIR)/libzad1O2.so\"",-DZAD1_LIB_FILE="\"libzad1O2.so\"" -O2 -c -o $@ $<
+
+$(OBJ_DIR)/%.O3.dll.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DZAD1_LIB_DLL=1,-DZAD1_LIB_PATH="\"$(ZAD1_SHARED_LIB_DIR)/libzad1O3.so\"",-DZAD1_LIB_FILE="\"libzad1O3.so\"" -O3 -c -o $@ $<
+
+$(OBJ_DIR)/%.Os.dll.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DZAD1_LIB_DLL=1,-DZAD1_LIB_PATH="\"$(ZAD1_SHARED_LIB_DIR)/libzad1Os.so\"",-DZAD1_LIB_FILE="\"libzad1Os.so\"" -Os -c -o $@ $<
+
+
+$(OUT_DIR)/zad2_static_O0: $(OBJS:.o=.O0.o) $(ZAD1_STATIC_LIB_DIR)/libzad1O0.a
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_STATIC_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1O0,-lc
+
+$(OUT_DIR)/zad2_static_O1: $(OBJS:.o=.O1.o) $(ZAD1_STATIC_LIB_DIR)/libzad1O1.a
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_STATIC_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1O1,-lc
+
+$(OUT_DIR)/zad2_static_O2: $(OBJS:.o=.O2.o) $(ZAD1_STATIC_LIB_DIR)/libzad1O2.a
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_STATIC_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1O2,-lc
+
+$(OUT_DIR)/zad2_static_O3: $(OBJS:.o=.O3.o) $(ZAD1_STATIC_LIB_DIR)/libzad1O3.a
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_STATIC_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1O3,-lc
+
+$(OUT_DIR)/zad2_static_Os: $(OBJS:.o=.Os.o) $(ZAD1_STATIC_LIB_DIR)/libzad1Os.a
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_STATIC_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1Os,-lc
+
+
+
+$(OUT_DIR)/zad2_shared_O0: $(OBJS:.o=.O0.o) $(ZAD1_SHARED_LIB_DIR)/libzad1O0.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_SHARED_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1O0,-lc
+
+$(OUT_DIR)/zad2_shared_O1: $(OBJS:.o=.O1.o) $(ZAD1_SHARED_LIB_DIR)/libzad1O1.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_SHARED_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1O1,-lc
+
+$(OUT_DIR)/zad2_shared_O2: $(OBJS:.o=.O2.o) $(ZAD1_SHARED_LIB_DIR)/libzad1O2.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_SHARED_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1O2,-lc
+
+$(OUT_DIR)/zad2_shared_O3: $(OBJS:.o=.O3.o) $(ZAD1_SHARED_LIB_DIR)/libzad1O3.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_SHARED_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1O3,-lc
+
+$(OUT_DIR)/zad2_shared_Os: $(OBJS:.o=.Os.o) $(ZAD1_SHARED_LIB_DIR)/libzad1Os.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_SHARED_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1Os,-lc
+
+
+$(OUT_DIR)/zad2_dll_O0: $(OBJS:.o=.O0.dll.o) $(ZAD1_SHARED_LIB_DIR)/libzad1O0.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $(filter %.o,$^) -Wl,-lc
+
+$(OUT_DIR)/zad2_dll_O1: $(OBJS:.o=.O1.dll.o) $(ZAD1_SHARED_LIB_DIR)/libzad1O1.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $(filter %.o,$^) -Wl,-lc
+
+$(OUT_DIR)/zad2_dll_O2: $(OBJS:.o=.O2.dll.o) $(ZAD1_SHARED_LIB_DIR)/libzad1O2.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $(filter %.o,$^) -Wl,-lc
+
+$(OUT_DIR)/zad2_dll_O3: $(OBJS:.o=.O3.dll.o) $(ZAD1_SHARED_LIB_DIR)/libzad1O3.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $(filter %.o,$^) -Wl,-lc
+
+$(OUT_DIR)/zad2_dll_Os: $(OBJS:.o=.Os.dll.o) $(ZAD1_SHARED_LIB_DIR)/libzad1Os.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $(filter %.o,$^) -Wl,-lc
+
+# USER CONFIG
+BUILD_DIR ?= build
+OUT_DIR ?= $(BUILD_DIR)/out
+OLEVEL ?= 2
+CFLAGS += -Wall -Werror
+LDFLAGS +=
+# -----------
+
+OBJ_DIR := $(BUILD_DIR)/obj
+BENCH_DIR := $(BUILD_DIR)/bench
+
+SRC_DIR := src
+INC_DIR := $(SRC_DIR)/inc
+
+INC_DIRS := $(INC_DIR)
+SRCS := $(shell find $(SRC_DIR) -type f -and -name "*.c" -print)
+HDRS := $(shell find $(INC_DIRS) -type f -and -name "*.h" -print)
+OBJS := $(SRCS:%.c=$(OBJ_DIR)/%.o)
+
+CFLAGS += -Wp,$(INC_DIRS:%=-I%) -O$(OLEVEL) -std=gnu99
+
+
+.PHONY: all
+all: $(OUT_DIR)/zad1 lib sys
+
+.PHONY: lib
+lib: $(OUT_DIR)/zad1_lib
+
+.PHONY: sys
+sys: $(OUT_DIR)/zad1_sys
+
+.PHONY: help
+help:
+	@echo './RUN [ARGS]     - run program'
+	@echo './RUN_LIB [ARGS] - run program (lib implementation)'
+	@echo './RUN_SYS [ARGS] - run program (sys implementation)'
+	@echo 'make bench       - run benchmarks'
+
+.PHONY: bench
+bench: pomiar_zad_1.txt
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+pomiar_zad_1.txt: $(OUT_DIR)/zad1_sys $(OUT_DIR)/zad1_lib $(BENCH_DIR)/input comments.txt
+	@echo 'SYS:' > $@
+	(time -p $(OUT_DIR)/zad1_sys $(BENCH_DIR)/input $(BENCH_DIR)/output) 2>> $@
+
+	@echo 'LIB:' >> $@
+	(time -p $(OUT_DIR)/zad1_lib $(BENCH_DIR)/input $(BENCH_DIR)/output) 2>> $@
+
+	@echo '' >> $@
+	@cat comments.txt >> $@
+
+
+$(BENCH_DIR)/input: $(shell find $(SRC_DIR) -type f) Makefile
+	@mkdir -p $(dir $@)
+	@rm -f $@
+	@echo 'Generating input file'
+	@for i in `seq 1 5000`; do cat $^ >> $@; done
+
+
+$(OBJ_DIR)/%.lib.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DIMPL_LIB -c -o $@ $<
+
+$(OBJ_DIR)/%.sys.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DIMPL_SYS -c -o $@ $<
+
+$(OUT_DIR)/zad1_lib: $(OBJS:.o=.lib.o)
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $^ -Wl,-lc
+
+$(OUT_DIR)/zad1_sys: $(OBJS:.o=.sys.o)
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $^ -Wl,-lc
+
+$(OUT_DIR)/zad1: $(OUT_DIR)/zad1_lib
+	cp $< $@
+# USER CONFIG
+BUILD_DIR ?= build
+OUT_DIR ?= $(BUILD_DIR)/out
+OLEVEL ?= 2
+CFLAGS += -Wall -Werror
+LDFLAGS +=
+# -----------
+
+OBJ_DIR := $(BUILD_DIR)/obj
+BENCH_DIR := $(BUILD_DIR)/bench
+
+SRC_DIR := src
+INC_DIR := $(SRC_DIR)/inc
+
+INC_DIRS := $(INC_DIR)
+SRCS := $(shell find $(SRC_DIR) -type f -and -name "*.c" -print)
+HDRS := $(shell find $(INC_DIRS) -type f -and -name "*.h" -print)
+OBJS := $(SRCS:%.c=$(OBJ_DIR)/%.o)
+
+CFLAGS += -Wp,$(INC_DIRS:%=-I%) -O$(OLEVEL) -std=gnu99
+
+
+.PHONY: all
+all: $(OUT_DIR)/zad2 lib sys
+
+.PHONY: lib
+lib: $(OUT_DIR)/zad2_lib
+
+.PHONY: sys
+sys: $(OUT_DIR)/zad2_sys
+
+.PHONY: help
+help:
+	@echo './RUN [ARGS]     - run program'
+	@echo './RUN_LIB [ARGS] - run program (lib implementation)'
+	@echo './RUN_SYS [ARGS] - run program (sys implementation)'
+	@echo 'make bench       - run benchmarks'
+
+.PHONY: bench
+bench: pomiar_zad_2.txt
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+pomiar_zad_2.txt: $(OUT_DIR)/zad2_sys $(OUT_DIR)/zad2_lib $(BENCH_DIR)/input comments.txt
+	@echo 'SYS:' > $@
+	(time -p $(OUT_DIR)/zad2_sys a $(BENCH_DIR)/input) 2>> $@
+
+	@echo 'LIB:' >> $@
+	(time -p $(OUT_DIR)/zad2_lib a $(BENCH_DIR)/input) 2>> $@
+
+	@echo '' >> $@
+	@cat comments.txt >> $@
+
+
+$(BENCH_DIR)/input: $(shell find $(SRC_DIR) -type f) Makefile
+	@mkdir -p $(dir $@)
+	@rm -f $@
+	@echo 'Generating input file'
+	@for i in `seq 1 10000`; do cat $^ >> $@; done
+
+
+$(OBJ_DIR)/%.lib.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DIMPL_LIB -c -o $@ $<
+
+$(OBJ_DIR)/%.sys.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DIMPL_SYS -c -o $@ $<
+
+$(OUT_DIR)/zad2_lib: $(OBJS:.o=.lib.o)
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $^ -Wl,-lc
+
+$(OUT_DIR)/zad2_sys: $(OBJS:.o=.sys.o)
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $^ -Wl,-lc
+
+$(OUT_DIR)/zad2: $(OUT_DIR)/zad2_lib
+	cp $< $@
+# USER CONFIG
+BUILD_DIR ?= build
+OUT_DIR ?= $(BUILD_DIR)/out
+OLEVEL ?= 2
+CFLAGS += -Wall -Werror
+LDFLAGS +=
+# -----------
+
+OBJ_DIR := $(BUILD_DIR)/obj
+
+SRC_DIR := src
+INC_DIR := $(SRC_DIR)/inc
+
+INC_DIRS := $(INC_DIR)
+SRCS := $(shell find $(SRC_DIR) -type f -and -name "*.c" -print)
+HDRS := $(shell find $(INC_DIRS) -type f -and -name "*.h" -print)
+OBJS := $(SRCS:%.c=$(OBJ_DIR)/%.o)
+
+CFLAGS += -Wp,$(INC_DIRS:%=-I%) -O$(OLEVEL) -std=gnu99
+
+
+.PHONY: all
+all: $(OUT_DIR)/zad3 stat nftw
+
+.PHONY: stat
+stat: $(OUT_DIR)/zad3_stat
+
+.PHONY: nftw
+nftw: $(OUT_DIR)/zad3_nftw
+
+.PHONY: help
+help:
+	@echo './RUN      [ARGS] - run program'
+	@echo './RUN_STAT [ARGS] - run program (stat implementation)'
+	@echo './RUN_NFTW [ARGS] - run program (nftw implementation)'
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+$(OBJ_DIR)/%.stat.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DIMPL_STAT -c -o $@ $<
+
+$(OBJ_DIR)/%.nftw.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DIMPL_NFTW -c -o $@ $<
+
+$(OUT_DIR)/zad3_stat: $(OBJS:.o=.stat.o)
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $^ -Wl,-lc
+
+$(OUT_DIR)/zad3_nftw: $(OBJS:.o=.nftw.o)
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $^ -Wl,-lc
+
+$(OUT_DIR)/zad3: $(OUT_DIR)/zad3_stat
+	cp $< $@
+# USER CONFIG
+BUILD_DIR ?= build
+OUT_DIR ?= $(BUILD_DIR)/out
+OLEVEL ?= 2
+CFLAGS += -Wall -Werror
+# -----------
+
+
+OBJ_DIR := $(BUILD_DIR)/obj
+SRC_DIR := src
+SRCS := $(shell find $(SRC_DIR) -type f -and -name "*.c" -print)
+OBJS := $(SRCS:%.c=$(OBJ_DIR)/%.o)
+CFLAGS += -O$(OLEVEL) -std=gnu99
+
+
+.PHONY: all
+all: $(OUT_DIR)/exe
+
+.PHONY: help
+help:
+	@echo './RUN N - create N processes'
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+$(OBJ_DIR)/%.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OUT_DIR)/exe: $(OBJS)
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $^ -Wl,-lc
+# USER CONFIG
+BUILD_DIR ?= build
+OUT_DIR ?= $(BUILD_DIR)/out
+OLEVEL ?= 2
+CFLAGS += -Wall -Werror
+# -----------
+
+
+OBJ_DIR := $(BUILD_DIR)/obj
+SRC_DIR := src
+INC_DIRS := $(SRC_DIR)/inc
+SRCS := $(shell find $(SRC_DIR) -type f -and -name "*.c" -print)
+HDRS := $(shell find $(INC_DIRS) -type f -and -name "*.h" -print)
+OBJS := $(SRCS:%.c=$(OBJ_DIR)/%.o)
+CFLAGS += -Wp,$(INC_DIRS:%=-I%) -O$(OLEVEL) -std=gnu99
+
+
+.PHONY: all
+all: $(OUT_DIR)/exe
+
+.PHONY: help
+help:
+	@echo './RUN [ARGS] - run program'
+	@echo 'make bench   - run benchmarks'
+
+.PHONY: bench
+bench: results.txt
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+results.txt: $(OUT_DIR)/exe
+	./bench.sh $< > $@
+	@echo '' >> $@
+	@cat comments.txt >> $@
+
+
+$(OBJ_DIR)/%.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OUT_DIR)/exe: $(OBJS)
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $^ -Wl,-lc
+# USER CONFIG
+BUILD_DIR ?= build
+OUT_DIR ?= $(BUILD_DIR)/out
+OLEVEL ?= 2
+CFLAGS += -Wall -Werror
+# -----------
+
+
+OBJ_DIR := $(BUILD_DIR)/obj
+SRC_DIR := src
+INC_DIRS := $(SRC_DIR)/inc
+SRCS := $(shell find $(SRC_DIR) -type f -and -name "*.c" -print)
+HDRS := $(shell find $(INC_DIRS) -type f -and -name "*.h" -print)
+OBJS := $(SRCS:%.c=$(OBJ_DIR)/%.o)
+CFLAGS += -Wp,$(INC_DIRS:%=-I%) -O$(OLEVEL) -std=gnu99
+
+
+.PHONY: all
+all: $(OUT_DIR)/exe
+
+.PHONY: help
+help:
+	@echo './RUN [ARGS] - run program'
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+$(OBJ_DIR)/%.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OUT_DIR)/exe: $(OBJS)
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $^ -Wl,-lc
+# USER CONFIG
+BUILD_DIR ?= build
+OUT_DIR ?= $(BUILD_DIR)/out
+OLEVEL ?= 2
+CFLAGS += -Wall -Werror
+# -----------
+
+
+OBJ_DIR := $(BUILD_DIR)/obj
+SRC_DIR := src
+SRCS := $(shell find $(SRC_DIR) -type f -and -name "*.c" -print)
+OBJS := $(SRCS:%.c=$(OBJ_DIR)/%.o)
+CFLAGS += -O$(OLEVEL) -std=gnu99
+
+
+.PHONY: all
+all: $(OUT_DIR)/exe
+
+.PHONY: help
+help:
+	@echo './RUN [ARGS] - run program'
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+$(OBJ_DIR)/%.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OUT_DIR)/exe: $(OBJS)
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $^ -Wl,-lc
+# USER CONFIG
+BUILD_DIR ?= build
+OUT_DIR ?= $(BUILD_DIR)/out
+OLEVEL ?= 2
+CFLAGS += -Wall -Werror
+# -----------
+
+
+OBJ_DIR := $(BUILD_DIR)/obj
+SRC_DIR := src
+SRCS := $(shell find $(SRC_DIR) -type f -and -name "*.c" -print)
+OBJS := $(SRCS:%.c=$(OBJ_DIR)/%.o)
+CFLAGS += -O$(OLEVEL) -std=gnu99
+
+
+.PHONY: all
+all: $(OUT_DIR)/exe
+
+.PHONY: help
+help:
+	@echo './RUN [ARGS] - run program'
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+$(OBJ_DIR)/%.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OUT_DIR)/exe: $(OBJS)
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $^ -Wl,-lc
+# USER CONFIG
+BUILD_DIR ?= build
+OUT_DIR ?= $(BUILD_DIR)/out
+OLEVEL ?= 2
+CFLAGS += -Wall -Werror
+# -----------
+
+
+OBJ_DIR := $(BUILD_DIR)/obj
+SRC_DIR := src
+CFLAGS += -O$(OLEVEL) -std=gnu99
+
+
+.PHONY: all
+all: $(OUT_DIR)/sender $(OUT_DIR)/catcher
+
+.PHONY: help
+help:
+	@echo './CATCHER [ARGS] - run catcher'
+	@echo './SENDER  [ARGS] - run sender'
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+$(OUT_DIR)/%: $(OBJ_DIR)/%.o
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $^ -Wl,-lc
+
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -o $@ $<
+# USER CONFIG
+BUILD_DIR ?= build
+OUT_DIR ?= $(BUILD_DIR)/out
+OLEVEL ?= 2
+CFLAGS += -Wall -Werror
+# -----------
+
+
+OBJ_DIR := $(BUILD_DIR)/obj
+SRC_DIR := src
+CFLAGS += -O$(OLEVEL) -std=gnu99
+
+
+.PHONY: all
+all: $(OUT_DIR)/sender $(OUT_DIR)/catcher
+
+.PHONY: help
+help:
+	@echo './CATCHER [ARGS] - run catcher'
+	@echo './SENDER  [ARGS] - run sender'
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+$(OUT_DIR)/%: $(OBJ_DIR)/%.o
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $^ -Wl,-lc
+
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -o $@ $<
+#include "zad1.h"
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
+#define STR_BUF_SIZE (1024)
+
+static const char TMP_FILE_TEMPLATE[] = "/tmp/jkzad2.XXXXXX";
+
+/**
+ * Escape string with single quotes.
+ * Given "text\0" as input would write "'text'\0" to output.
+ *
+ * @param out Output buffer.
+ * @param n Size of output buffer.
+ * @param in Input string.
+ * @return 0 if successful, else error.
+ */
+static int quote_string(char *out, size_t n, const char *in)
+{
+    if (!out || !in || out == in) return -1;
+
+    // count characters to escape
+    size_t out_size = 3; // start with "''\0" (3 chars)
+    for (size_t i = 0; in[i]; ++i)
+    {
+        switch (in[i])
+        {
+            case '\'':
+            case '\\':
+                // escape with backslash
+                out_size += 2;
+                break;
+
+            default:
+                out_size++;
+                break;
+        }
+    }
+
+    if (out_size > n) return -1;
+
+    // write quoted string
+    size_t written = 0;
+    out[written++] = '\'';
+    for (size_t i = 0; in[i]; ++i)
+    {
+        switch (in[i])
+        {
+            case '\'':
+            case '\\':
+                // escape next char
+                out[written++] = '\\';
+
+            default:
+                out[written++] = in[i];
+                break;
+        }
+    }
+    out[written++] = '\'';
+    out[written++] = 0;
+
+    return 0;
+}
+
+/**
+ * Load file contents to a new block.
+ *
+ * @param fd File descriptor.
+ * @return Pointer to created block or NULL if error.
+ */
+static block_t* create_block_from_file(int fd)
+{
+    block_t *block = NULL;
+
+    do
+    {
+        if (fd < 0) break;
+
+        // get file size by seeking to EOF and back
+        off_t size = lseek(fd, 0, SEEK_END);
+        if (size < 0) break;
+        off_t off = lseek(fd, 0, SEEK_SET);
+        if (off) break;
+
+        block = malloc(sizeof(*block));
+        if (!block) break;
+
+        block->size = size;
+        block->data = malloc(size);
+        if (!block->data) break;
+
+        size_t written = read(fd, block->data, size);
+        if (written != size) break;
+
+        return block;
+    } while (0);
+
+    // cleanup
+    if (block)
+    {
+        free(block->data);
+        free(block);
+    }
+    return NULL;
+}
+
+barr_t* barr_alloc(size_t size)
+{
+    barr_t *barr = NULL;
+
+    do
+    {
+        barr = malloc(sizeof(*barr));
+        if (!barr) break;
+
+        barr->size = size;
+        barr->blocks = calloc(size, sizeof(*barr->blocks));
+        if (!barr->blocks) break;
+
+        return barr;
+    } while (0);
+
+    // cleanup
+    if (barr)
+    {
+        free(barr->blocks);
+        free(barr);
+    }
+    return NULL;
+}
+
+void barr_free(barr_t *barr)
+{
+    if (!barr) return;
+
+    if (barr->blocks)
+    {
+        for (size_t i = 0; i < barr->size; ++i)
+        {
+            if (barr->blocks[i])
+            {
+                free(barr->blocks[i]->data);
+                free(barr->blocks[i]);
+            }
+        }
+        free(barr->blocks);
+    }
+
+    free(barr);
+}
+
+int generate_stats_file(const char *in_filename)
+{
+    int err;
+    char cmd[STR_BUF_SIZE];
+    char in_filename_quoted[STR_BUF_SIZE];
+    char out_filename[sizeof(TMP_FILE_TEMPLATE)];
+    int out_file_fd = -1;
+
+    do
+    {
+        if (!in_filename) break;
+
+        memcpy(out_filename, TMP_FILE_TEMPLATE, sizeof(TMP_FILE_TEMPLATE));
+        out_file_fd = mkstemp(out_filename);
+        if (out_file_fd < 0) break;
+
+        err = quote_string(
+            in_filename_quoted,
+            sizeof(in_filename_quoted),
+            in_filename
+        );
+        if (err) break;
+
+        int n = snprintf(
+            cmd,
+            sizeof(cmd),
+            "wc %s > %s",
+            in_filename_quoted,
+            out_filename
+        );
+        if (n >= sizeof(cmd)) break;
+
+        err = system(cmd);
+        if (err) break;
+
+        // file will be automatically
+        // removed when closed
+        unlink(out_filename);
+
+        return out_file_fd;
+    } while (0);
+
+    // cleanup
+    if (out_file_fd >= 0)
+    {
+        close(out_file_fd);
+        unlink(out_filename);
+    }
+    return -1;
+}
+
+int barr_block_load(barr_t *barr, int in_file_fd, size_t *new_index)
+{
+    if (!barr || !barr->blocks || in_file_fd < 0 || !new_index) return -1;
+
+    // find first free block
+    size_t index;
+    int found = 0;
+    for (size_t i = 0; i < barr->size; ++i)
+    {
+        if (!barr->blocks[i])
+        {
+            found = 1;
+            index = i;
+            break;
+        }
+    }
+
+    // no free blocks
+    if (!found) return -1;
+
+    barr->blocks[index] = create_block_from_file(in_file_fd);
+    if (!barr->blocks[index]) return -1;
+
+    *new_index = index;
+
+    return 0;
+}
+
+int barr_block_delete(barr_t *barr, size_t b_index)
+{
+    if (!barr ||
+        !barr->blocks ||
+        b_index < 0 ||
+        b_index >= barr->size ||
+        !barr->blocks[b_index])
+        return -1;
+
+    free(barr->blocks[b_index]->data);
+    free(barr->blocks[b_index]);
+    barr->blocks[b_index] = NULL;
+
+    return 0;
+}
+#include "bench.h"
+
+#include <stdio.h>
+#include <unistd.h>
+#include "zad1.h"
+#include "time_utils.h"
+
+#define BENCH1_COUNT (1 << 9)
+#define BENCH2_COUNT (1 << 15)
+#define BENCH4_COUNT (1 << 12)
+#define MAX_FILE_COUNT (1 << 8)
+#define MAX_BLOCKS (1 << 15)
+
+int benchmarks_run(int num_files, char **in_files)
+{
+    /*
+     * This function does a lot of error checking
+     * in addition to the benchmarks.
+     * It obviously has an impact on runtimes,
+     * but it is the only way to keep the code safe.
+     */
+
+    if (num_files > MAX_FILE_COUNT || !in_files) return -1;
+
+    int err = 0;
+    bench_t bench;
+    barr_t *barr;
+    // buffer for created file descriptors
+    int created_fds[MAX_FILE_COUNT];
+    int created_files = 0;
+    // buffer for created block ids
+    size_t created_block_idx[MAX_BLOCKS];
+    int created_blocks = 0;
+
+    do
+    {
+        barr = barr_alloc(MAX_BLOCKS + 1);
+        if (!barr) break;
+
+        // BENCH WC_FILES
+
+        bench_start(&bench);
+
+        for (int count = 0; count < BENCH1_COUNT; ++count)
+        {
+            int fd = generate_stats_file(in_files[count % num_files]);
+            if (fd < 0)
+            {
+                err = -1;
+                break;
+            }
+            // keep track of MAX_FILE_COUNT files
+            if (created_files < MAX_FILE_COUNT)
+            {
+                created_fds[created_files] = fd;
+                created_files++;
+            }
+            else
+            {
+                // if buffer full, discard file
+                close(fd);
+            }
+        }
+        if (err) break;
+
+        bench_stop(&bench);
+        printf("[BENCH] WC FILES:\n");
+        bench_print(&bench);
+
+        // BENCH LOAD BLOCKS
+
+        bench_start(&bench);
+
+        for (int count = 0; count < BENCH2_COUNT; ++count)
+        {
+            size_t b_index;
+            err = barr_block_load(barr, created_fds[count % created_files], &b_index);
+            if (err) break;
+            // keep track of MAX_BLOCKS blocks
+            if (created_blocks < MAX_BLOCKS)
+            {
+                created_block_idx[created_blocks] = b_index;
+                created_blocks++;
+            }
+            else
+            {
+                // if buffer full, delete block
+                // (would mem leak otherwise)
+                err = barr_block_delete(barr, b_index);
+                if (err) break;
+            }
+        }
+        if (err) break;
+
+        bench_stop(&bench);
+        printf("[BENCH] LOAD BLOCKS:\n");
+        bench_print(&bench);
+
+        // BENCH DELETE BLOCKS
+
+        bench_start(&bench);
+
+        // delete all blocks in buffer
+        for (int i = 0; i < created_blocks; ++i)
+        {
+            err = barr_block_delete(barr, created_block_idx[i]);
+            if (err) break;
+        }
+        if (err) break;
+        created_blocks = 0;
+
+        bench_stop(&bench);
+        printf("[BENCH] DELETE BLOCKS:\n");
+        bench_print(&bench);
+
+        // BENCH LOAD DELETE
+
+        bench_start(&bench);
+
+        for (int count = 0; count < BENCH4_COUNT; ++count)
+        {
+            // create & remove in batches
+            for (int i = 0; i < created_files; ++i)
+            {
+                size_t index;
+                err = barr_block_load(barr, created_fds[i], &index);
+                if (err) break;
+                if (created_blocks < MAX_BLOCKS)
+                {
+                    created_block_idx[created_blocks] = index;
+                    created_blocks++;
+                }
+                else
+                {
+                    err = barr_block_delete(barr, index);
+                    if (err) break;
+                }
+            }
+            if (err) break;
+            for (int i = 0; i < created_blocks; ++i)
+            {
+                err = barr_block_delete(barr, created_block_idx[i]);
+                if (err) break;
+            }
+            if (err) break;
+            created_blocks = 0;
+        }
+        if (err) break;
+
+        bench_stop(&bench);
+        printf("[BENCH] LOAD DELETE:\n");
+        bench_print(&bench);
+    } while (0);
+
+    // cleanup
+
+    for (int i = 0; i < created_files; ++i)
+    {
+        close(created_fds[i]);
+    }
+
+    if (barr) barr_free(barr);
+
+    return err;
+}
+#include "cli.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include "zad1.h"
+#include "cmd.h"
+#include "bench.h"
+
+static const char CLI_BENCH_CMD[] = "bench";
+
+static const char CLI_HELP[] =
+    "SO Lab1 - Jakub Karbowski\n"
+    "\nUsage:\n"
+    "%s bench         - run benchmarks\n"
+    "%s [COMMANDS...] - process given commands\n"
+    "\nCommands:\n"
+    "create_table SIZE  - create block array with SIZE empty blocks\n"
+    "wc_files FILES...  - use wc on FILES and save results to first empty block\n"
+    "remove_block INDEX - remove block from array at INDEX\n"
+    "\nExample:\n"
+    "%s create_table 10 wc_files file1.txt file2.txt remove_block 0\n"
+    "\nNotes:\n"
+    "When parsing filenames, command names take priority.\n"
+    "For example, \"wc_files remove_block\"\n"
+    "would not process file called \"remove_block\"\n"
+    "but instead try executing remove_block command.\n"
+    "The above example would fail.\n";
+
+typedef struct cli_state_t
+{
+    barr_t *barr;
+    int argc;
+    char **argv;
+    int current_arg;
+} cli_state_t;
+
+static int process_current_command(cli_state_t *cli)
+{
+    switch (cmd_parse(cli->argv[cli->current_arg]))
+    {
+        case CMD_CREATE_TABLE:
+        {
+            // advance to SIZE argument
+            cli->current_arg++;
+
+            if (cli->current_arg >= cli->argc)
+            {
+                fprintf(stderr, "Missing size argument\n");
+                return -1;
+            }
+
+            char *endptr;
+            long size = strtol(cli->argv[cli->current_arg], &endptr, 10);
+            if (!*cli->argv[cli->current_arg] || *endptr || size < 1)
+            {
+                fprintf(stderr, "Invalid size: %s\n", cli->argv[cli->current_arg]);
+                return -1;
+            }
+
+            barr_free(cli->barr);
+            cli->barr = barr_alloc(size);
+            if (!cli->barr)
+            {
+                fprintf(stderr, "Could not allocate block array\n");
+                return -1;
+            }
+
+            fprintf(stderr, "Created block array with %ld blocks\n", size);
+            cli->current_arg++;
+            break;
+        }
+
+        case CMD_WC_FILES:
+        {
+            if (!cli->barr)
+            {
+                fprintf(stderr, "Block array not created! Use create_table first\n");
+                return -1;
+            }
+
+            // advance to first file
+            cli->current_arg++;
+
+            // parse all filenames
+            for (; cli->current_arg < cli->argc && cmd_parse(cli->argv[cli->current_arg]) == CMD_INVALID; cli->current_arg++)
+            {
+                const char *in_file = cli->argv[cli->current_arg];
+
+                // opens tmp file
+                int out_file_fd = generate_stats_file(in_file);
+                if (out_file_fd < 0)
+                {
+                    fprintf(stderr, "Could not wc %s\n", in_file);
+                    return -1;
+                }
+
+                fprintf(stderr, "Processed %s\n", in_file);
+
+                size_t index;
+                int err = barr_block_load(cli->barr, out_file_fd, &index);
+                // closes tmp file
+                close(out_file_fd);
+                if (err)
+                {
+                    fprintf(stderr, "Could not load results into block array\n");
+                    return -1;
+                }
+
+                size_t size = cli->barr->blocks[index]->size;
+
+                fprintf(stderr, "Loaded results (%luB) into block %lu\n", size, index);
+            }
+
+            break;
+        }
+
+        case CMD_REMOVE_BLOCK:
+        {
+            if (!cli->barr)
+            {
+                fprintf(stderr, "Block array not created! Use create_table first\n");
+                return -1;
+            }
+
+            // advance to INDEX argument
+            cli->current_arg++;
+
+            if (cli->current_arg >= cli->argc)
+            {
+                fprintf(stderr, "Missing index argument\n");
+                return -1;
+            }
+
+            char *endptr;
+            long index = strtol(cli->argv[cli->current_arg], &endptr, 10);
+            if (!*cli->argv[cli->current_arg] || *endptr || index < 0)
+            {
+                fprintf(stderr, "Invalid index: %s\n", cli->argv[cli->current_arg]);
+                return -1;
+            }
+
+            int err = barr_block_delete(cli->barr, index);
+            if (err)
+            {
+                fprintf(stderr, "Error deleting block %ld\n", index);
+                return -1;
+            }
+
+            fprintf(stderr, "Removed block %ld\n", index);
+            cli->current_arg++;
+            break;
+        }
+
+        default:
+            fprintf(stderr, "Invalid command: %s\n", cli->argv[cli->current_arg]);
+            return -1;
+    }
+
+    return 0;
+}
+
+int cli_process_commands(int argc, char **argv)
+{
+    if (argc < 1)
+    {
+        fprintf(stderr, "[FATAL] argc < 1\n");
+        return -1;
+    }
+    else if (argc < 2)
+    {
+        fprintf(stderr, CLI_HELP, argv[0], argv[0], argv[0]);
+        return -1;
+    }
+
+    if (!strncmp(argv[1], CLI_BENCH_CMD, sizeof(CLI_BENCH_CMD)))
+    {
+        return benchmarks_run(argc - 2, argv + 2);
+    }
+
+    int err;
+    cli_state_t cli;
+    cli.barr = NULL;
+    cli.argc = argc;
+    cli.argv = argv;
+    cli.current_arg = 1;
+
+    while (cli.current_arg < cli.argc)
+    {
+        err = process_current_command(&cli);
+        if (err) break;
+    }
+
+    if (err)
+    {
+        fprintf(stderr, "Error processing commands\n");
+        return -1;
+    }
+
+    fprintf(stderr, "Done\n");
+
+    return 0;
+}
+#include "cmd.h"
+
+#include <string.h>
+
+cmd_t cmd_parse(const char *cmd)
+{
+    if (!strncmp(cmd, CMD_CREATE_TABLE_STR, sizeof(CMD_CREATE_TABLE_STR)))
+        return CMD_CREATE_TABLE;
+
+    if (!strncmp(cmd, CMD_WC_FILES_STR, sizeof(CMD_WC_FILES_STR)))
+        return CMD_WC_FILES;
+
+    if (!strncmp(cmd, CMD_REMOVE_BLOCK_STR, sizeof(CMD_REMOVE_BLOCK_STR)))
+        return CMD_REMOVE_BLOCK;
+
+    return CMD_INVALID;
+}
+#include <stdio.h>
+#include "cli.h"
+#include "zad1_lib.h"
+
+int main(int argc, char **argv)
+{
+    int err;
+
+#ifdef ZAD1_LIB_DLL
+    err = zad1_lib_load();
+    if (err)
+    {
+        fprintf(stderr, "Could not load dll\n");
+        return -1;
+    };
+#endif
+
+    err = cli_process_commands(argc, argv);
+    return err;
+}
+#include "time_utils.h"
+
+#include <stdio.h>
+#include <sys/resource.h>
+#include <time.h>
+
+
+// time difference functions
+
+static double ts_sub(const struct timespec *t1, const struct timespec *t2)
+{
+    return (double) (t1->tv_sec - t2->tv_sec) + (double) (t1->tv_nsec - t2->tv_nsec) / 1000000000.0;
+}
+
+static double tv_sub(const struct timeval *t1, const struct timeval *t2)
+{
+    return (double) (t1->tv_sec - t2->tv_sec) + (double) (t1->tv_usec - t2->tv_usec) / 1000000.0;
+}
+
+
+void bench_start(bench_t *bench)
+{
+    clock_gettime(CLOCK_MONOTONIC, &bench->ts);
+    getrusage(RUSAGE_SELF, &bench->r_usage_self);
+    getrusage(RUSAGE_CHILDREN, &bench->r_usage_children);
+}
+
+void bench_stop(bench_t *bench)
+{
+    struct timespec ts;
+    struct rusage r_usage_self;
+    struct rusage r_usage_children;
+
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    getrusage(RUSAGE_SELF, &r_usage_self);
+    getrusage(RUSAGE_CHILDREN, &r_usage_children);
+
+    bench->rtime = ts_sub(&ts, &bench->ts);
+
+    bench->utime = tv_sub(
+        &r_usage_self.ru_utime,
+        &bench->r_usage_self.ru_utime
+    ) + tv_sub(
+        &r_usage_children.ru_utime,
+        &bench->r_usage_children.ru_utime
+    );
+
+    bench->stime = tv_sub(
+        &r_usage_self.ru_stime,
+        &bench->r_usage_self.ru_stime
+    ) + tv_sub(
+        &r_usage_children.ru_stime,
+        &bench->r_usage_children.ru_stime
+    );
+}
+
+void bench_print(const bench_t *bench)
+{
+    printf("real %f user %f system %f [s]\n", bench->rtime, bench->utime, bench->stime);
+}
+#include "zad1_lib.h"
+
+#ifdef ZAD1_LIB_DLL
+
+#include <dlfcn.h>
+#include "zad1.h"
+
+static struct
+{
+    barr_t* (*barr_alloc)(size_t);
+
+    void (*barr_free)(barr_t*);
+
+    int (*barr_block_load)(barr_t*, int, size_t*);
+
+    int (*barr_block_delete)(barr_t*, size_t);
+
+    int (*generate_stats_file)(const char*);
+} ZAD1_LIB_FUNCTIONS;
+
+static int ZAD1_LIB_INIT = 0;
+
+int zad1_lib_load()
+{
+    if (ZAD1_LIB_INIT) return 0;
+
+    // try loading by name
+    void *handle = dlopen(ZAD1_LIB_FILE, RTLD_LAZY);
+    if (!handle)
+    {
+        // else try loading by hardcoded absolute path
+        handle = dlopen(ZAD1_LIB_PATH, RTLD_LAZY);
+        if (!handle) return -1;
+    }
+
+    ZAD1_LIB_FUNCTIONS.barr_alloc = dlsym(handle, "barr_alloc");
+    ZAD1_LIB_FUNCTIONS.barr_free = dlsym(handle, "barr_free");
+    ZAD1_LIB_FUNCTIONS.barr_block_load = dlsym(handle, "barr_block_load");
+    ZAD1_LIB_FUNCTIONS.barr_block_delete = dlsym(handle, "barr_block_delete");
+    ZAD1_LIB_FUNCTIONS.generate_stats_file = dlsym(handle, "generate_stats_file");
+
+    ZAD1_LIB_INIT = 1;
+
+    return 0;
+}
+
+barr_t* barr_alloc(size_t size)
+{
+    return ZAD1_LIB_FUNCTIONS.barr_alloc(size);
+}
+
+void barr_free(barr_t *barr)
+{
+    ZAD1_LIB_FUNCTIONS.barr_free(barr);
+}
+
+int barr_block_load(barr_t *barr, int in_file_fd, size_t *new_index)
+{
+    return ZAD1_LIB_FUNCTIONS.barr_block_load(barr, in_file_fd, new_index);
+}
+
+int barr_block_delete(barr_t *barr, size_t b_index)
+{
+    return ZAD1_LIB_FUNCTIONS.barr_block_delete(barr, b_index);
+}
+
+int generate_stats_file(const char *in_filename)
+{
+    return ZAD1_LIB_FUNCTIONS.generate_stats_file(in_filename);
+}
+
+#endif
+#include "libcopy.h"
+
+#ifdef IMPL_LIB
+
+#include <stdio.h>
+#include <ctype.h>
+#include <stdlib.h>
+
+int copy_file(const char *in_path, const char *out_path)
+{
+    if (!in_path || !out_path) return -1;
+
+    int err = 0;
+    long buf_size = 256;
+    char *buf = NULL;
+    FILE *fin = NULL;
+    FILE *fout = NULL;
+
+    do
+    {
+        buf = malloc(buf_size);
+        if (!buf)
+        {
+            err = -1;
+            break;
+        }
+
+        fin = fopen(in_path, "r");
+        if (!fin)
+        {
+            err = -1;
+            break;
+        }
+
+        fout = fopen(out_path, "w");
+        if (!fout)
+        {
+            err = -1;
+            break;
+        }
+
+        while (!feof(fin))
+        {
+            // remember start of line
+            long line_start = ftell(fin);
+            if (line_start < 0)
+            {
+                err = -1;
+                break;
+            }
+
+            // should this line be discarded
+            int ignore = 1;
+
+            // find end of line
+            for (;;)
+            {
+                int c = fgetc(fin);
+                if (feof(fin)) break;
+                if (ferror(fin))
+                {
+                    err = -1;
+                    break;
+                }
+
+                // found char in line
+                if (!isspace(c)) ignore = 0;
+
+                // end of line
+                if (c == '\n') break;
+            }
+            if (err) break;
+
+            // discard line
+            if (ignore) continue;
+
+            // remember end of line
+            long line_end = ftell(fin);
+            if (line_end < 0)
+            {
+                err = -1;
+                break;
+            }
+
+            long line_size = line_end - line_start;
+
+            // go to beginning
+            err = fseek(fin, line_start, SEEK_SET);
+            if (err) break;
+
+            // realloc buf if needed
+            if (line_size > buf_size)
+            {
+                buf_size = line_size;
+                buf = realloc(buf, line_size);
+                if (!buf)
+                {
+                    err = -1;
+                    break;
+                }
+            }
+
+            // read entire line
+            size_t n = fread(buf, 1, line_size, fin);
+            if (n != line_size)
+            {
+                err = -1;
+                break;
+            }
+
+            // write line to output
+            n = fwrite(buf, 1, line_size, fout);
+            if (n != line_size)
+            {
+                err = -1;
+                break;
+            }
+        }
+    } while (0);
+
+    if (fin)
+        fclose(fin);
+    if (fout)
+        fclose(fout);
+    if (buf)
+        free(buf);
+
+    return err;
+}
+
+#endif // IMPL_LIB
+#include "libcopy.h"
+
+#ifdef IMPL_SYS
+
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <ctype.h>
+
+int copy_file(const char *in_path, const char *out_path)
+{
+    int err = 0;
+    off_t buf_size = 256;
+    char *buf = NULL;
+    int fin = -1;
+    int fout = -1;
+
+    do
+    {
+        buf = malloc(buf_size);
+        if (!buf)
+        {
+            err = -1;
+            break;
+        }
+
+        fin = open(in_path, O_RDONLY);
+        if (fin < 0)
+        {
+            err = -1;
+            break;
+        }
+
+        fout = open(out_path, O_WRONLY | O_CREAT, 0b110110110);
+        if (fout < 0)
+        {
+            err = -1;
+            break;
+        }
+
+        int eof = 0;
+        while (!eof)
+        {
+            // remember line start
+            off_t line_start = lseek(fin, 0, SEEK_CUR);
+            if (line_start < 0)
+            {
+                err = -1;
+                break;
+            }
+
+            // should line be discarded
+            int ignore = 1;
+
+            // find end of line
+            for (;;)
+            {
+                char c;
+                ssize_t n = read(fin, &c, 1);
+                if (n == 0)
+                {
+                    eof = 1;
+                    break;
+                }
+                if (n < 0)
+                {
+                    err = -1;
+                    break;
+                }
+
+                if (!isspace(c)) ignore = 0;
+
+                if (c == '\n') break;
+            }
+            if (err) break;
+
+            // skip this line
+            if (ignore) continue;
+
+            // found line end
+            off_t line_end = lseek(fin, 0, SEEK_CUR);
+            if (line_end < 0)
+            {
+                err = -1;
+                break;
+            }
+
+            off_t line_size = line_end - line_start;
+
+            // go to start
+            off_t p = lseek(fin, line_start, SEEK_SET);
+            if (p < 0)
+            {
+                err = -1;
+                break;
+            }
+
+            // realloc buffer if needed
+            if (line_size > buf_size)
+            {
+                buf_size = line_size;
+                buf = realloc(buf, line_size);
+                if (!buf)
+                {
+                    err = -1;
+                    break;
+                }
+            }
+
+            // read line
+            ssize_t n = read(fin, buf, line_size);
+            if (n != line_size)
+            {
+                err = -1;
+                break;
+            }
+
+            // write line
+            n = write(fout, buf, line_size);
+            if (n != line_size)
+            {
+                err = -1;
+                break;
+            }
+        }
+    } while (0);
+
+    if (fin >= 0) close(fin);
+    if (fin >= 0) close(fout);
+    free(buf);
+
+    return err;
+}
+
+#endif // IMPL_SYS
+#include <stdio.h>
+#include <stdlib.h>
+#include "libcopy.h"
+
+static const char HELP[] =
+        "SO Lab2 Zad1 - Jakub Karbowski\n"
+        "Usage:\n"
+        "%s              - interactive mode\n"
+        "%s INPUT OUTPUT - copy contents of INPUT to OUTPUT "
+        "removing empty lines\n";
+
+int main(int argc, char **argv)
+{
+    int err = 0;
+
+    // either 0 or 2 arguments
+    if (argc != 3 && argc != 1)
+    {
+        fprintf(stderr, HELP, argv[0], argv[0]);
+        return -1;
+    }
+
+    // files in arguments
+    if (argc == 3)
+    {
+        const char *in_file = argv[1];
+        const char *out_file = argv[2];
+        err = copy_file(in_file, out_file);
+    }
+    // files from stdin
+    else
+    {
+        ssize_t n;
+        char *in_file = NULL;
+        char *out_file = NULL;
+        size_t in_file_cap;
+        size_t out_file_cap;
+
+        for (;;)
+        {
+            printf("Enter source file: ");
+            fflush(stdout);
+            n = getline(&in_file, &in_file_cap, stdin);
+            // name + \n
+            if (n > 1) break;
+            printf("Invalid input!\n");
+        }
+        // terminate string at \n
+        in_file[n - 1] = 0;
+
+        for (;;)
+        {
+            printf("Enter destination file: ");
+            fflush(stdout);
+            n = getline(&out_file, &out_file_cap, stdin);
+            if (n > 1) break;
+            printf("Invalid input!\n");
+        }
+        out_file[n - 1] = 0;
+
+        printf("Copying from %s to %s...\n", in_file, out_file);
+        err = copy_file(in_file, out_file);
+        if (err) printf("Error!\n");
+        else printf("Done\n");
+
+        free(in_file);
+        free(out_file);
+    }
+
+    return err;
+}
+#include "libcount.h"
+
+#ifdef IMPL_LIB
+
+#include <stdio.h>
+
+int count_chars(const char *file, char c, char_stats_t *stats)
+{
+    if (!file || !stats) return -1;
+
+    int err = 0;
+
+    stats->n_chars = 0;
+    stats->n_lines = 0;
+
+    FILE *f = fopen(file, "r");
+    if (!f) return -1;
+
+    int found_in_line = 0;
+
+    for (;;)
+    {
+        int cur = fgetc(f);
+        if (feof(f)) break;
+        if (ferror(f))
+        {
+            err = -1;
+            break;
+        }
+
+        if (cur == c)
+        {
+            stats->n_chars++;
+            if (!found_in_line)
+            {
+                stats->n_lines++;
+                found_in_line = 1;
+            }
+        }
+
+        if (cur == '\n')
+            found_in_line = 0;
+    }
+
+    fclose(f);
+    return err;
+}
+
+#endif // IMPL_LIB
+#include "libcount.h"
+
+#ifdef IMPL_SYS
+
+#include <unistd.h>
+#include <fcntl.h>
+
+int count_chars(const char *file, char c, char_stats_t *stats)
+{
+    if (!file || !stats) return -1;
+
+    int err = 0;
+
+    stats->n_chars = 0;
+    stats->n_lines = 0;
+
+    int f = open(file, O_RDONLY);
+    if (f < 0) return -1;
+
+    int found_in_line = 0;
+
+    for (;;)
+    {
+        char cur;
+        ssize_t n = read(f, &cur, 1);
+        if (n == 0) break;
+        if (n != 1)
+        {
+            err = -1;
+            break;
+        }
+
+        if (cur == c)
+        {
+            stats->n_chars++;
+            if (!found_in_line)
+            {
+                stats->n_lines++;
+                found_in_line = 1;
+            }
+        }
+
+        if (cur == '\n')
+            found_in_line = 0;
+    }
+
+    close(f);
+    return err;
+}
+
+#endif // IMPL_LIB
+#include <stdio.h>
+#include "libcount.h"
+
+static const char HELP[] =
+        "SO Lab2 Zad2 - Jakub Karbowski\n"
+        "Usage:\n"
+        "%s CHAR FILE - count CHARs in FILE\n";
+
+int main(int argc, char **argv)
+{
+    int err = 0;
+
+    if (argc != 3)
+    {
+        fprintf(stderr, HELP, argv[0]);
+        return -1;
+    }
+
+    // first argument has to be single char
+    if (argv[1][0] == 0 || argv[1][1] != 0)
+    {
+        fprintf(stderr, HELP, argv[0]);
+        return -1;
+    }
+
+    char c = argv[1][0];
+    const char *in_file = argv[2];
+    char_stats_t stats;
+    err = count_chars(in_file, c, &stats);
+    if (!err)
+    {
+        printf("Character occurrences:      %d\n", stats.n_chars);
+        printf("Lines containing character: %d\n", stats.n_lines);
+    }
+    else fprintf(stderr, "Error!\n");
+
+    return err;
+}
+#include <stdio.h>
+#include "walkdir.h"
+
+static const char HELP[] =
+        "SO Lab2 Zad3 - Jakub Karbowski\n"
+        "Usage:\n"
+        "%s DIR - walk DIR and print statistics\n";
+
+int main(int argc, char **argv)
+{
+    if (argc != 2)
+    {
+        fprintf(stderr, HELP, argv[0]);
+        return -1;
+    }
+
+    dir_stats_t stats;
+    printf("Walking %s\n", argv[1]);
+    int err = walk_dir(argv[1], &stats);
+    if (err)
+    {
+        fprintf(stderr, "Error!\n");
+        return -1;
+    }
+
+    printf(
+        "\nSummary:\n"
+        "reg:  %d\n"
+        "dir:  %d\n"
+        "chr:  %d\n"
+        "blk:  %d\n"
+        "fifo: %d\n"
+        "link: %d\n"
+        "sock: %d\n",
+        stats.n_reg,
+        stats.n_dir,
+        stats.n_chr,
+        stats.n_blk,
+        stats.n_fifo,
+        stats.n_link,
+        stats.n_sock
+    );
+
+    return 0;
+}#include "walkdir.h"
+
+#ifdef IMPL_NFTW
+
+#define _XOPEN_SOURCE 500
+
+#include <stdio.h>
+#include <string.h>
+#include <limits.h>
+#include <stdlib.h>
+#include <ftw.h>
+#include <time.h>
+
+#define NOPENFD (20)
+
+static dir_stats_t *GLOBAL_STATS;
+
+static int nftw_callback(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf)
+{
+    char atime[26];
+    if (ctime_r(&sb->st_atime, atime) != atime)
+        return -1;
+
+    char mtime[26];
+    if (ctime_r(&sb->st_mtime, mtime) != mtime)
+        return -1;
+
+    // remove \n
+    atime[24] = 0;
+    mtime[24] = 0;
+
+    const char *type;
+
+    if (S_ISFIFO(sb->st_mode))
+    {
+        GLOBAL_STATS->n_fifo++;
+        type = "fifo";
+    }
+    else if (S_ISCHR(sb->st_mode))
+    {
+        GLOBAL_STATS->n_chr++;
+        type = "chr";
+    }
+    else if (S_ISDIR(sb->st_mode))
+    {
+        GLOBAL_STATS->n_dir++;
+        type = "dir";
+    }
+    else if (S_ISBLK(sb->st_mode))
+    {
+        GLOBAL_STATS->n_blk++;
+        type = "blk";
+    }
+    else if (S_ISREG(sb->st_mode))
+    {
+        GLOBAL_STATS->n_reg++;
+        type = "reg";
+    }
+    else if (S_ISLNK(sb->st_mode))
+    {
+        GLOBAL_STATS->n_link++;
+        type = "link";
+    }
+    else if (S_ISSOCK(sb->st_mode))
+    {
+        GLOBAL_STATS->n_sock++;
+        type = "sock";
+    }
+    else return -1;
+
+    printf(
+        "%s:\n"
+        "- links: %lld\n"
+        "- type:  %s\n"
+        "- size:  %lldB\n"
+        "- atime: %s\n"
+        "- mtime: %s\n",
+        fpath,
+        (long long) sb->st_nlink,
+        type,
+        (long long) sb->st_size,
+        atime,
+        mtime
+    );
+
+    return 0;
+}
+
+int walk_dir(const char *path, dir_stats_t *stats)
+{
+    if (!path || !stats) return -1;
+
+    char abs_path[PATH_MAX];
+    if (realpath(path, abs_path) != abs_path)
+        return -1;
+
+    memset(stats, 0, sizeof *stats);
+    GLOBAL_STATS = stats;
+
+    return nftw(abs_path, nftw_callback, NOPENFD, FTW_PHYS);
+}
+
+#endif // IMPL_NFTW
+#include "walkdir.h"
+
+#ifdef IMPL_STAT
+
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <string.h>
+#include <limits.h>
+#include <stdlib.h>
+#include <time.h>
+
+int process_dir(const char *root_path, dir_stats_t *stats);
+
+static int process_path(const char *path, dir_stats_t *stats)
+{
+    if (!path || !stats) return -1;
+
+    int err;
+    struct stat stat;
+
+    err = lstat(path, &stat);
+    if (err) return -1;
+
+    char atime[26];
+    if (ctime_r(&stat.st_atime, atime) != atime)
+        return -1;
+    if (atime[strlen(atime) - 1] == '\n')
+        atime[strlen(atime) - 1] = 0;
+
+    char mtime[26];
+    if (ctime_r(&stat.st_mtime, mtime) != mtime)
+        return -1;
+    if (mtime[strlen(mtime) - 1] == '\n')
+        mtime[strlen(mtime) - 1] = 0;
+
+    const char *type;
+
+    if (S_ISFIFO(stat.st_mode))
+    {
+        stats->n_fifo++;
+        type = "fifo";
+    }
+    else if (S_ISCHR(stat.st_mode))
+    {
+        stats->n_chr++;
+        type = "chr";
+    }
+    else if (S_ISDIR(stat.st_mode))
+    {
+        err = process_dir(path, stats);
+        if (err) return -1;
+        stats->n_dir++;
+        type = "dir";
+    }
+    else if (S_ISBLK(stat.st_mode))
+    {
+        stats->n_blk++;
+        type = "blk";
+    }
+    else if (S_ISREG(stat.st_mode))
+    {
+        stats->n_reg++;
+        type = "reg";
+    }
+    else if (S_ISLNK(stat.st_mode))
+    {
+        stats->n_link++;
+        type = "link";
+    }
+    else if (S_ISSOCK(stat.st_mode))
+    {
+        stats->n_sock++;
+        type = "sock";
+    }
+    else return -1;
+
+    printf(
+        "%s:\n"
+        "- links: %lld\n"
+        "- type:  %s\n"
+        "- size:  %lldB\n"
+        "- atime: %s\n"
+        "- mtime: %s\n",
+        path,
+        (long long) stat.st_nlink,
+        type,
+        (long long) stat.st_size,
+        atime,
+        mtime
+    );
+
+    return err;
+}
+
+int process_dir(const char *root_path, dir_stats_t *stats)
+{
+    if (!root_path || !stats) return -1;
+
+    int err = 0;
+    DIR *root_dir = opendir(root_path);
+    if (!root_dir) return -1;
+
+    for (;;)
+    {
+        struct dirent *ent = readdir(root_dir);
+        if (!ent) break;
+
+        // skip . and ..
+        if (!strcmp(".", ent->d_name) || !strcmp("..", ent->d_name))
+            continue;
+
+        if (strlen(root_path) + strlen(ent->d_name) + 2 > PATH_MAX)
+        {
+            err = -1;
+            break;
+        }
+        char ent_path[PATH_MAX];
+        strcpy(ent_path, root_path);
+        strcat(ent_path, "/");
+        strcat(ent_path, ent->d_name);
+
+        err = process_path(ent_path, stats);
+        if (err) break;
+    }
+
+    closedir(root_dir);
+
+    return err;
+}
+
+int walk_dir(const char *path, dir_stats_t *stats)
+{
+    if (!path || !stats) return -1;
+
+    memset(stats, 0, sizeof *stats);
+
+    char abs_path[PATH_MAX];
+    if (realpath(path, abs_path) != abs_path)
+        return -1;
+
+    return process_path(abs_path, stats);
+}
+
+#endif // IMPL_STAT
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+static const char HELP[] =
+        "SO Lab3 Zad1 - Jakub Karbowski\n"
+        "Usage:\n"
+        "%s N - start N processes\n";
+
+static void child_task()
+{
+    printf("Hello from %lld\n", (long long) getpid());
+    exit(0);
+}
+
+int main(int argc, char **argv)
+{
+    if (argc != 2)
+    {
+        fprintf(stderr, HELP, argv[0]);
+        return -1;
+    }
+
+    char *endptr;
+    long n = strtol(argv[1], &endptr, 10);
+    if (*endptr || n < 0)
+    {
+        fprintf(stderr, "Invalid N: %s\n", argv[1]);
+        return -1;
+    }
+
+    printf("Spawning %ld processes\n", n);
+    for (long i = 0; i < n; ++i)
+    {
+        if (!fork()) child_task();
+    }
+    while (wait(NULL) >= 0);
+
+    return 0;
+}
+#include "calculator.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+#define X_FROM (0.)
+#define X_TO   (1.)
+
+#define FNAME_LEN (64)
+
+static double my_fun(double x)
+{
+    return 4. / (x*x + 1.);
+}
+
+static void worker_task(int wid, int n_proc, int n_cells)
+{
+    double result = 0.;
+    for (int i = wid; i < n_cells; i += n_proc)
+    {
+        double dx = (X_TO - X_FROM) / n_cells;
+        double x = dx / 2 + X_FROM + (X_TO - X_FROM) * ((double) i / n_cells);
+        result += my_fun(x) * dx;
+    }
+
+    char fname[FNAME_LEN];
+    sprintf(fname, "w%d.txt", wid);
+
+    FILE *f = fopen(fname, "w");
+    if (!f) exit(-1);
+
+    int err = fwrite(&result, sizeof result, 1, f) == 1 ? 0 : -1;
+    fclose(f);
+
+    exit(err);
+}
+
+static int compute(int n_proc, int n_cells)
+{
+    int err = 0;
+
+    for (int wid = 0; wid < n_proc; ++wid)
+    {
+        pid_t pid = fork();
+        if (pid < 0)
+        {
+            err = -1;
+            break;
+        }
+        if (!pid) worker_task(wid, n_proc, n_cells);
+    }
+
+    int num_completed = 0;
+    int status;
+    while (wait(&status) >= 0)
+    {
+        if (!WIFEXITED(status) || WEXITSTATUS(status))
+        {
+            err = -1;
+        }
+        else
+        {
+            num_completed++;
+        }
+    }
+
+    if (num_completed != n_proc)
+        err = -1;
+
+    return err;
+}
+
+static int reduce(double *out, int n_proc)
+{
+    double val;
+    char fname[FNAME_LEN];
+    *out = 0;
+
+    for (int wid = 0; wid < n_proc; ++wid)
+    {
+        sprintf(fname, "w%d.txt", wid);
+
+        FILE *f = fopen(fname, "r");
+        if (!f) return -1;
+
+        int err = fread(&val, sizeof val, 1, f) == 1 ? 0 : -1;
+        fclose(f);
+        if (err) return -1;
+
+        *out += val;
+    }
+    return 0;
+}
+
+int run_calculator(double dx, int n_proc)
+{
+    int err = 0;
+
+    do
+    {
+        int n_cells = (int) ((X_TO - X_FROM) / dx);
+        err = compute(n_proc, n_cells);
+        if (err) break;
+
+        double result;
+        err = reduce(&result, n_proc);
+        if (err) break;
+
+        printf("Result = %lf\n", result);
+    } while (0);
+
+    for (int wid = 0; wid < n_proc; ++wid)
+    {
+        char fname[FNAME_LEN];
+        sprintf(fname, "w%d.txt", wid);
+        unlink(fname);
+    }
+
+    return err;
+}
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+#include "calculator.h"
+
+static const char HELP[] =
+        "SO Lab3 Zad2 - Jakub Karbowski\n"
+        "Usage:\n"
+        "%s DX N - calculate with rectangle "
+        "width DX using N processes\n";
+
+int main(int argc, char **argv)
+{
+    if (argc != 3)
+    {
+        fprintf(stderr, HELP, argv[0]);
+        return -1;
+    }
+
+    char *endptr;
+    double dx = strtod(argv[1], &endptr);
+    if (*endptr || dx <= 0)
+    {
+        fprintf(stderr, "Invalid DX: %s\n", argv[1]);
+        return -1;
+    }
+    long n = strtol(argv[2], &endptr, 10);
+    if (*endptr || n <= 0 || n > INT_MAX)
+    {
+        fprintf(stderr, "Invalid N: %s\n", argv[2]);
+        return -1;
+    }
+
+    int err = run_calculator(dx, (int) n);
+    if (err) fprintf(stderr, "Error!\n");
+
+    return err;
+}
+#include "fork_search.h"
+
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <string.h>
+#include <limits.h>
+#include <stdlib.h>
+
+/**
+ * Surround string with single quotes.
+ */
+static int quote_string(char *out, size_t n, const char *in)
+{
+    if (!out || !in || out == in) return -1;
+
+    // count characters to escape
+    size_t out_size = 3; // start with "''\0" (3 chars)
+    for (size_t i = 0; in[i]; ++i)
+    {
+        switch (in[i])
+        {
+            case '\'':
+            case '\\':
+                // escape with backslash
+                out_size += 2;
+                break;
+
+            default:
+                out_size++;
+                break;
+        }
+    }
+
+    if (out_size > n) return -1;
+
+    // write quoted string
+    size_t written = 0;
+    out[written++] = '\'';
+    for (size_t i = 0; in[i]; ++i)
+    {
+        switch (in[i])
+        {
+            case '\'':
+            case '\\':
+                // escape next char
+                out[written++] = '\\';
+
+            default:
+                out[written++] = in[i];
+                break;
+        }
+    }
+    out[written++] = '\'';
+    out[written++] = 0;
+
+    return 0;
+}
+
+/**
+ * Check if given file is a text file
+ * using the file command to check
+ * the mime type.
+ * Returns 1 if mime type is text*.
+ */
+static int is_text_file(const char path[])
+{
+    char path_quoted[PATH_MAX];
+    if (quote_string(path_quoted, sizeof path_quoted, path))
+        return 0;
+
+    char cmd[PATH_MAX + 64];
+    sprintf(cmd, "file --brief --mime -- %s", path_quoted);
+
+    FILE *f = popen(cmd, "r");
+    if (!f) return 0;
+
+    char mime[5];
+    int err = fread(mime, 1, 4, f) == 4 ? 0 : -1;
+    mime[4] = 0;
+
+    pclose(f);
+
+    if (err) return 0;
+
+    return !strcmp("text", mime);
+}
+
+/**
+ * Searches given file for given pattern.
+ * Prints the filename, line number
+ * and column number of pattern occurrences.
+ */
+static int search_file(const char path[], size_t root_path_len, const char pattern[])
+{
+    if (!is_text_file(path)) return 0;
+
+    FILE *f = fopen(path, "r");
+    if (!f) return -1;
+
+    int err = 0;
+    char *buf = NULL;
+
+    do
+    {
+        size_t pat_len = strlen(pattern);
+        buf = malloc(pat_len + 1);
+        if (!buf)
+        {
+            err = -1;
+            break;
+        }
+        buf[pat_len] = 0;
+
+        int line_num = 1;
+        int col_num = 1;
+
+        while (!feof(f))
+        {
+            long match_start = ftell(f);
+            if (match_start < 0)
+            {
+                err = -1;
+                break;
+            }
+
+            err = fread(buf, 1, pat_len, f) == pat_len ? 0 : -1;
+            if (err)
+            {
+                if (feof(f)) err = 0;
+                break;
+            }
+
+            if (!memcmp(pattern, buf, pat_len))
+            {
+                printf("(PID %lld) %s:%d:%d\n",
+                       (long long) getpid(),
+                       path + root_path_len + 1,
+                       line_num,
+                       col_num
+                       );
+            }
+
+            err = fseek(f, match_start + 1, SEEK_SET);
+            if (err) break;
+
+            if (buf[0] == '\n')
+            {
+                line_num++;
+                col_num = 1;
+            }
+            else col_num++;
+        }
+    } while (0);
+
+    free(buf);
+    fclose(f);
+
+    return err;
+}
+
+int process_dir(const char path[], size_t root_path_len, const char pattern[], long depth);
+
+static int process_path(const char path[], size_t root_path_len, const char pattern[], long depth, DIR *parent_dir)
+{
+    struct stat stat;
+    if (lstat(path, &stat)) return -1;
+
+    if (S_ISDIR(stat.st_mode) && depth > 0)
+    {
+        pid_t pid = fork();
+        if (pid < 0) return -1;
+
+        if (!pid)
+        {
+            if (parent_dir) closedir(parent_dir);
+            int err = process_dir(path, root_path_len, pattern, depth - 1);
+            exit(err);
+        }
+    }
+    else
+    {
+        if (search_file(path, root_path_len, pattern)) return -1;
+    }
+
+    return 0;
+}
+
+int process_dir(const char path[], size_t root_path_len, const char pattern[], long depth)
+{
+    int err = 0;
+    DIR *root_dir = opendir(path);
+    if (!root_dir) return -1;
+
+    for (;;)
+    {
+        struct dirent *ent = readdir(root_dir);
+        if (!ent) break;
+
+        // skip . and ..
+        if (!strcmp(".", ent->d_name) || !strcmp("..", ent->d_name))
+            continue;
+
+        if (strlen(path) + strlen(ent->d_name) + 2 > PATH_MAX)
+        {
+            err = -1;
+            break;
+        }
+        char ent_path[PATH_MAX];
+        strcpy(ent_path, path);
+        strcat(ent_path, "/");
+        strcat(ent_path, ent->d_name);
+
+        err = process_path(ent_path, root_path_len, pattern, depth, root_dir);
+        if (err) break;
+    }
+
+    closedir(root_dir);
+
+    int status;
+    while (wait(&status) >= 0)
+    {
+        if (!WIFEXITED(status) || WEXITSTATUS(status))
+            err = -1;
+    }
+
+    return err;
+}
+
+
+int fork_search(const char path[], const char pattern[], long depth)
+{
+    if (!path || !pattern) return -1;
+
+    int err = process_path(path, strlen(path), pattern, depth, NULL);
+
+    int status;
+    while (wait(&status) >= 0)
+    {
+        if (!WIFEXITED(status) || WEXITSTATUS(status))
+            err = -1;
+    }
+
+    return err;
+}
+#include <stdio.h>
+#include <stdlib.h>
+#include "fork_search.h"
+
+static const char HELP[] =
+        "SO Lab3 Zad3 - Jakub Karbowski\n"
+        "Usage:\n"
+        "%s DIR PATTERN DEPTH - search DIR for files containing PATTERN "
+        "with maximum search depth DEPTH\n";
+
+int main(int argc, char **argv)
+{
+    if (argc != 4)
+    {
+        fprintf(stderr, HELP, argv[0]);
+        return -1;
+    }
+
+    char *endptr;
+    long depth = strtol(argv[3], &endptr, 10);
+    if (*endptr || depth < 0)
+    {
+        fprintf(stderr, "Invalid depth: %s\n", argv[3]);
+        return -1;
+    }
+
+    int err = fork_search(argv[1], argv[2], depth);
+    if (err) fprintf(stderr, "Error!\n");
+
+    return err;
+}
+#include <stdio.h>
+#include <string.h>
+#include <signal.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+
+static const char HELP[] =
+        "SO Lab4 Zad1 - Jakub Karbowski\n"
+        "Usage:\n"
+        "%s ignore|handler|mask|pending [exec]\n";
+
+static void handler(int sig)
+{
+    printf("Got signal: %s\n", strsignal(sig));
+}
+
+int main(int argc, char **argv)
+{
+    int do_exec = argc == 3 && !strcmp("exec", argv[2]);
+    int super_secret_mode = argc == 3 && !strcmp("SUPER_SECRET_MODE", argv[2]);
+
+    if (argc != 2 && !super_secret_mode && !do_exec)
+    {
+        fprintf(stderr, HELP, argv[0]);
+        return -1;
+    }
+
+    if (do_exec) argc--;
+
+    pid_t pid = -1;
+    struct sigaction act = {0};
+    sigset_t set;
+
+    if (!strcmp("ignore", argv[1]))
+    {
+        if (!super_secret_mode)
+        {
+            act.sa_handler = SIG_IGN;
+            sigaction(SIGUSR1, &act, NULL);
+
+            sigaction(SIGUSR1, NULL, &act);
+            printf("[Parent] Is%s ignored\n",
+                   act.sa_handler == SIG_IGN ? "" : " not"
+            );
+
+            raise(SIGUSR1);
+
+            if (do_exec)
+            {
+                char **args = malloc((argc + 2) * sizeof *args);
+                memcpy(args, argv, (argc + 2) * sizeof *args);
+                args[argc] = "SUPER_SECRET_MODE";
+                args[argc + 1] = 0;
+                execv(args[0], args);
+            }
+            else
+            {
+                pid = fork();
+                if (pid) waitpid(pid, NULL, 0);
+            }
+        }
+
+        if (super_secret_mode || !pid)
+        {
+            sigaction(SIGUSR1, NULL, &act);
+            printf("[%s] Is%s ignored\n",
+                   super_secret_mode ? "Exec" : "Child",
+                   act.sa_handler == SIG_IGN ? "" : " not"
+            );
+            raise(SIGUSR1);
+            exit(0);
+        }
+    }
+    else if (!strcmp("handler", argv[1]))
+    {
+        if (!super_secret_mode)
+        {
+            act.sa_handler = handler;
+            sigaction(SIGUSR1, &act, NULL);
+
+            raise(SIGUSR1);
+
+            if (do_exec)
+            {
+                char **args = malloc((argc + 2) * sizeof *args);
+                memcpy(args, argv, (argc + 2) * sizeof *args);
+                args[argc] = "SUPER_SECRET_MODE";
+                args[argc + 1] = 0;
+                execv(args[0], args);
+            }
+            else
+            {
+                pid = fork();
+                if (pid) waitpid(pid, NULL, 0);
+            }
+        }
+
+        if (super_secret_mode || !pid)
+        {
+            raise(SIGUSR1);
+            exit(0);
+        }
+    }
+    else if (!strcmp("mask", argv[1]))
+    {
+        if (!super_secret_mode)
+        {
+            sigemptyset(&set);
+            sigaddset(&set, SIGUSR1);
+            sigprocmask(SIG_BLOCK, &set, NULL);
+
+            sigprocmask(0, NULL, &set);
+            printf("[Parent] Is%s masked\n",
+                   sigismember(&set, SIGUSR1) ? "" : " not"
+            );
+
+            raise(SIGUSR1);
+
+            if (do_exec)
+            {
+                char **args = malloc((argc + 2) * sizeof *args);
+                memcpy(args, argv, (argc + 2) * sizeof *args);
+                args[argc] = "SUPER_SECRET_MODE";
+                args[argc + 1] = 0;
+                execv(args[0], args);
+            }
+            else
+            {
+                pid = fork();
+                if (pid) waitpid(pid, NULL, 0);
+            }
+        }
+
+        if (super_secret_mode || !pid)
+        {
+            sigprocmask(0, NULL, &set);
+            printf("[%s] Is%s masked\n",
+                super_secret_mode ? "Exec" : "Child",
+                sigismember(&set, SIGUSR1) ? "" : " not"
+            );
+            raise(SIGUSR1);
+            exit(0);
+        }
+    }
+    else if (!strcmp("pending", argv[1]))
+    {
+        if (!super_secret_mode)
+        {
+            sigemptyset(&set);
+            sigaddset(&set, SIGUSR1);
+            sigprocmask(SIG_BLOCK, &set, NULL);
+
+            raise(SIGUSR1);
+
+            sigpending(&set);
+            printf("[Parent] Is%s pending\n",
+                   sigismember(&set, SIGUSR1) ? "" : " not"
+            );
+
+            if (do_exec)
+            {
+                char **args = malloc((argc + 2) * sizeof *args);
+                memcpy(args, argv, (argc + 2) * sizeof *args);
+                args[argc] = "SUPER_SECRET_MODE";
+                args[argc + 1] = 0;
+                execv(args[0], args);
+            }
+            else
+            {
+                pid = fork();
+                if (pid) waitpid(pid, NULL, 0);
+            }
+        }
+
+        if (super_secret_mode || !pid)
+        {
+            sigpending(&set);
+            printf("[%s] Is%s pending\n",
+                super_secret_mode ? "Exec" : "Child",
+                sigismember(&set, SIGUSR1) ? "" : " not"
+            );
+            exit(0);
+        }
+    }
+    else
+    {
+        fprintf(stderr, HELP, argv[0]);
+        return -1;
+    }
+
+    return 0;
+}
+#include <stdio.h>
+#include <sys/wait.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+static void handler3(int sig, siginfo_t *info, void *ucontext)
+{
+    printf("Got signal: %s\n"
+        "\tSignal number:\t%d\n"
+        "\tSender PID:\t%lld\n",
+        strsignal(info->si_signo),
+        info->si_signo,
+        (long long) info->si_pid
+    );
+}
+
+static void handler1(int sig)
+{
+    printf("Got signal %d: %s\n", sig, strsignal(sig));
+}
+
+static int SIGNALS[] = {
+        SIGUSR1,
+        SIGHUP,
+        0,
+};
+
+int main(int argc, char **argv)
+{
+    SIGNALS[2] = SIGRTMIN;
+
+    struct sigaction act = {0};
+
+
+
+    // ----------------------------------------------------------
+
+    for (int i = 0; i < sizeof(SIGNALS) / sizeof(*SIGNALS); ++i)
+    {
+        int sig = SIGNALS[i];
+
+        printf("\nTesting signal %d: %s\n", sig, strsignal(sig));
+
+        act.sa_sigaction = handler3;
+        act.sa_flags = SA_SIGINFO;
+        sigaction(sig, &act, NULL);
+        raise(sig);
+    }
+
+    // ----------------------------------------------------------
+
+    if (!fork())
+    {
+        printf("\nTesting SA_RESETHAND\n");
+        act.sa_handler = handler1;
+        act.sa_flags = SA_RESETHAND;
+        sigaction(SIGUSR1, &act, NULL);
+        printf("Raise\n");
+        raise(SIGUSR1);
+        printf("Raise\n");
+        raise(SIGUSR1);
+        exit(0);
+    }
+    wait(NULL);
+
+    // ----------------------------------------------------------
+
+    printf("\nTesting without SA_NODEFER\n");
+    act.sa_sigaction = handler3;
+    act.sa_flags = SA_SIGINFO;
+    sigaction(SIGUSR1, &act, NULL);
+    {
+        pid_t parent = getpid();
+        if (!fork())
+        {
+            union sigval val;
+            printf("Raise\n");
+            sigqueue(parent, SIGUSR1, val);
+            printf("Raise\n");
+            sigqueue(parent, SIGUSR1, val);
+            exit(0);
+        }
+        wait(NULL);
+        sleep(2);
+    }
+
+    // ----------------------------------------------------------
+
+    printf("\nTesting with SA_NODEFER\n");
+    act.sa_sigaction = handler3;
+    act.sa_flags = SA_SIGINFO | SA_NODEFER;
+    sigaction(SIGUSR1, &act, NULL);
+    {
+        pid_t parent = getpid();
+        if (!fork())
+        {
+            union sigval val;
+            printf("Raise\n");
+            sigqueue(parent, SIGUSR1, val);
+            printf("Raise\n");
+            sigqueue(parent, SIGUSR1, val);
+            exit(0);
+        }
+        wait(NULL);
+        sleep(2);
+    }
+
+    // ----------------------------------------------------------
+
+    return 0;
+}
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
+#include <string.h>
+#include <stdbool.h>
+
+typedef enum send_mode_t
+{
+    MODE_KILL,
+    MODE_SIGQUEUE,
+    MODE_SIGRT,
+} send_mode_t;
+
+static volatile send_mode_t g_send_mode;
+static volatile int g_num_received = 0;
+static volatile bool g_got_stop = false;
+static volatile pid_t g_sender_pid;
+
+static void handler(int sig, siginfo_t *info, void *ucontext)
+{
+    // get sender's mode
+    if (sig == SIGRTMIN + 0 || sig == SIGRTMIN + 1)
+        g_send_mode = MODE_SIGRT;
+    else if (info->si_code == SI_USER)
+        g_send_mode = MODE_KILL;
+    else if (info->si_code == SI_QUEUE)
+        g_send_mode = MODE_SIGQUEUE;
+
+    g_sender_pid = info->si_pid;
+
+    if (sig == SIGUSR1 || sig == SIGRTMIN + 0)
+        g_num_received++;
+    else if (sig == SIGUSR2 || sig == SIGRTMIN + 1)
+        g_got_stop = true;
+}
+
+int main(int argc, char **argv)
+{
+    printf("PID: %lld\n", (long long) getpid());
+
+    // SIGNAL SETUP
+
+    struct sigaction act = {0};
+    act.sa_sigaction = handler;
+    act.sa_flags = SA_SIGINFO;
+    sigaction(SIGUSR1, &act, NULL);
+    sigaction(SIGUSR2, &act, NULL);
+    sigaction(SIGRTMIN + 0, &act, NULL);
+    sigaction(SIGRTMIN + 1, &act, NULL);
+
+    // WAIT FOR PING
+
+    while (!g_got_stop) pause();
+
+    printf("Catcher got %d signals\n", g_num_received);
+
+    // SEND PONG
+
+    for (int i = 0; i < g_num_received; ++i)
+    {
+        switch (g_send_mode)
+        {
+            case MODE_KILL:
+                kill(g_sender_pid, SIGUSR1);
+                break;
+
+            case MODE_SIGQUEUE:
+                sigqueue(g_sender_pid, SIGUSR1, (union sigval) 0);
+                break;
+
+            case MODE_SIGRT:
+                kill(g_sender_pid, SIGRTMIN + 0);
+                break;
+        }
+    }
+
+    // SEND STOP
+
+    switch (g_send_mode)
+    {
+        case MODE_KILL:
+            kill(g_sender_pid, SIGUSR2);
+            break;
+
+        case MODE_SIGQUEUE:
+            sigqueue(g_sender_pid, SIGUSR2, (union sigval) g_num_received);
+            break;
+
+        case MODE_SIGRT:
+            kill(g_sender_pid, SIGRTMIN + 1);
+            break;
+    }
+
+    return 0;
+}
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
+#include <stdbool.h>
+
+typedef enum send_mode_t
+{
+    MODE_KILL,
+    MODE_SIGQUEUE,
+    MODE_SIGRT,
+} send_mode_t;
+
+static const char HELP[] =
+        "SO Lab4 Zad3a - Jakub Karbowski\n"
+        "Usage:\n"
+        "%s CATCHER_PID NUM_SIGNALS kill|sigqueue|sigrt\n";
+
+static volatile int g_num_received = 0;
+static volatile bool g_got_stop = false;
+static volatile int g_catcher_sent;
+
+static void handler(int sig, siginfo_t *info, void *ucontext)
+{
+    if (sig == SIGUSR1 || sig == SIGRTMIN + 0)
+        g_num_received++;
+    else if (sig == SIGUSR2 || sig == SIGRTMIN + 1)
+        g_got_stop = true;
+
+    if (info->si_code == SI_QUEUE && sig == SIGUSR2)
+        g_catcher_sent = info->si_value.sival_int;
+}
+
+int main(int argc, char **argv)
+{
+
+    // ------------- ARG PARSING
+
+    if (argc != 4)
+    {
+        fprintf(stderr, HELP, argv[0]);
+        return -1;
+    }
+
+    char *endptr;
+    pid_t catcher_pid = (pid_t) strtol(argv[1], &endptr, 10);
+    if (*endptr || catcher_pid < 0)
+    {
+        fprintf(stderr, "Invalid catcher PID: %s\n", argv[1]);
+        return -1;
+    }
+
+    int to_send = (int) strtol(argv[2], &endptr, 10);
+    if (*endptr || to_send < 0)
+    {
+        fprintf(stderr, "Invalid N: %s\n", argv[2]);
+        return -1;
+    }
+
+    send_mode_t mode;
+    if (!strcmp("kill", argv[3])) mode = MODE_KILL;
+    else if (!strcmp("sigqueue", argv[3])) mode = MODE_SIGQUEUE;
+    else if (!strcmp("sigrt", argv[3])) mode = MODE_SIGRT;
+    else
+    {
+        fprintf(stderr, "Invalid mode: %s\n", argv[3]);
+        return -1;
+    }
+
+    // ------------- SIGNAL SETUP
+
+    struct sigaction act = {0};
+    act.sa_sigaction = handler;
+    act.sa_flags = SA_SIGINFO;
+    sigaction(SIGUSR1, &act, NULL);
+    sigaction(SIGUSR2, &act, NULL);
+    sigaction(SIGRTMIN + 0, &act, NULL);
+    sigaction(SIGRTMIN + 1, &act, NULL);
+
+    // ------------- SEND PING
+
+    for (int i = 0; i < to_send; ++i)
+    {
+        switch (mode)
+        {
+            case MODE_KILL:
+                kill(catcher_pid, SIGUSR1);
+                break;
+
+            case MODE_SIGQUEUE:
+                sigqueue(catcher_pid, SIGUSR1, (union sigval) 0);
+                break;
+
+            case MODE_SIGRT:
+                kill(catcher_pid, SIGRTMIN + 0);
+                break;
+        }
+    }
+
+    // ------------- SEND STOP
+
+    switch (mode)
+    {
+        case MODE_KILL:
+            kill(catcher_pid, SIGUSR2);
+            break;
+
+        case MODE_SIGQUEUE:
+            sigqueue(catcher_pid, SIGUSR2, (union sigval) 0);
+            break;
+
+        case MODE_SIGRT:
+            kill(catcher_pid, SIGRTMIN + 1);
+            break;
+    }
+
+    // ------------- WAIT FOR PONG
+
+    while (!g_got_stop) pause();
+
+    if (mode == MODE_SIGQUEUE)
+        printf("Catcher got %d/%d signals\n", g_catcher_sent, to_send);
+
+    printf("Sender got %d/%d signals\n", g_num_received, to_send);
+
+    return 0;
+}
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
+#include <string.h>
+#include <stdbool.h>
+
+typedef enum send_mode_t
+{
+    MODE_KILL,
+    MODE_SIGQUEUE,
+    MODE_SIGRT,
+} send_mode_t;
+
+static volatile send_mode_t g_send_mode;
+static volatile int g_num_received = 0;
+static volatile bool g_got_stop = false;
+static volatile pid_t g_sender_pid;
+
+static void handler(int sig, siginfo_t *info, void *ucontext)
+{
+    // get sender's mode
+    if (sig == SIGRTMIN + 0 || sig == SIGRTMIN + 1)
+        g_send_mode = MODE_SIGRT;
+    else if (info->si_code == SI_USER)
+        g_send_mode = MODE_KILL;
+    else if (info->si_code == SI_QUEUE)
+        g_send_mode = MODE_SIGQUEUE;
+
+    g_sender_pid = info->si_pid;
+
+    if (sig == SIGUSR1 || sig == SIGRTMIN + 0)
+        g_num_received++;
+    else if (sig == SIGUSR2 || sig == SIGRTMIN + 1)
+        g_got_stop = true;
+}
+
+int main(int argc, char **argv)
+{
+    printf("PID: %lld\n", (long long) getpid());
+
+    // SIGNAL SETUP
+
+    struct sigaction act = {0};
+    act.sa_sigaction = handler;
+    act.sa_flags = SA_SIGINFO;
+    sigaction(SIGUSR1, &act, NULL);
+    sigaction(SIGUSR2, &act, NULL);
+    sigaction(SIGRTMIN + 0, &act, NULL);
+    sigaction(SIGRTMIN + 1, &act, NULL);
+
+    // WAIT FOR PING
+
+    while (!g_got_stop) pause();
+
+    printf("Catcher got %d signals\n", g_num_received);
+
+    // SEND PONG
+
+    for (int i = 0; i < g_num_received; ++i)
+    {
+        switch (g_send_mode)
+        {
+            case MODE_KILL:
+                kill(g_sender_pid, SIGUSR1);
+                break;
+
+            case MODE_SIGQUEUE:
+                sigqueue(g_sender_pid, SIGUSR1, (union sigval) 0);
+                break;
+
+            case MODE_SIGRT:
+                kill(g_sender_pid, SIGRTMIN + 0);
+                break;
+        }
+    }
+
+    // SEND STOP
+
+    switch (g_send_mode)
+    {
+        case MODE_KILL:
+            kill(g_sender_pid, SIGUSR2);
+            break;
+
+        case MODE_SIGQUEUE:
+            sigqueue(g_sender_pid, SIGUSR2, (union sigval) g_num_received);
+            break;
+
+        case MODE_SIGRT:
+            kill(g_sender_pid, SIGRTMIN + 1);
+            break;
+    }
+
+    return 0;
+}
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
+#include <stdbool.h>
+
+typedef enum send_mode_t
+{
+    MODE_KILL,
+    MODE_SIGQUEUE,
+    MODE_SIGRT,
+} send_mode_t;
+
+static const char HELP[] =
+        "SO Lab4 Zad3b - Jakub Karbowski\n"
+        "Usage:\n"
+        "%s CATCHER_PID NUM_SIGNALS kill|sigqueue|sigrt\n";
+
+static volatile int g_num_received = 0;
+static volatile bool g_got_stop = false;
+static volatile int g_catcher_sent;
+
+static void handler(int sig, siginfo_t *info, void *ucontext)
+{
+    if (sig == SIGUSR1 || sig == SIGRTMIN + 0)
+        g_num_received++;
+    else if (sig == SIGUSR2 || sig == SIGRTMIN + 1)
+        g_got_stop = true;
+
+    if (info->si_code == SI_QUEUE && sig == SIGUSR2)
+        g_catcher_sent = info->si_value.sival_int;
+}
+
+int main(int argc, char **argv)
+{
+
+    // ------------- ARG PARSING
+
+    if (argc != 4)
+    {
+        fprintf(stderr, HELP, argv[0]);
+        return -1;
+    }
+
+    char *endptr;
+    pid_t catcher_pid = (pid_t) strtol(argv[1], &endptr, 10);
+    if (*endptr || catcher_pid < 0)
+    {
+        fprintf(stderr, "Invalid catcher PID: %s\n", argv[1]);
+        return -1;
+    }
+
+    int to_send = (int) strtol(argv[2], &endptr, 10);
+    if (*endptr || to_send < 0)
+    {
+        fprintf(stderr, "Invalid N: %s\n", argv[2]);
+        return -1;
+    }
+
+    send_mode_t mode;
+    if (!strcmp("kill", argv[3])) mode = MODE_KILL;
+    else if (!strcmp("sigqueue", argv[3])) mode = MODE_SIGQUEUE;
+    else if (!strcmp("sigrt", argv[3])) mode = MODE_SIGRT;
+    else
+    {
+        fprintf(stderr, "Invalid mode: %s\n", argv[3]);
+        return -1;
+    }
+
+    // ------------- SIGNAL SETUP
+
+    struct sigaction act = {0};
+    act.sa_sigaction = handler;
+    act.sa_flags = SA_SIGINFO;
+    sigaction(SIGUSR1, &act, NULL);
+    sigaction(SIGUSR2, &act, NULL);
+    sigaction(SIGRTMIN + 0, &act, NULL);
+    sigaction(SIGRTMIN + 1, &act, NULL);
+
+    // ------------- SEND PING
+
+    for (int i = 0; i < to_send; ++i)
+    {
+        switch (mode)
+        {
+            case MODE_KILL:
+                kill(catcher_pid, SIGUSR1);
+                break;
+
+            case MODE_SIGQUEUE:
+                sigqueue(catcher_pid, SIGUSR1, (union sigval) 0);
+                break;
+
+            case MODE_SIGRT:
+                kill(catcher_pid, SIGRTMIN + 0);
+                break;
+        }
+    }
+
+    // ------------- SEND STOP
+
+    switch (mode)
+    {
+        case MODE_KILL:
+            kill(catcher_pid, SIGUSR2);
+            break;
+
+        case MODE_SIGQUEUE:
+            sigqueue(catcher_pid, SIGUSR2, (union sigval) 0);
+            break;
+
+        case MODE_SIGRT:
+            kill(catcher_pid, SIGRTMIN + 1);
+            break;
+    }
+
+    // ------------- WAIT FOR PONG
+
+    while (!g_got_stop) pause();
+
+    if (mode == MODE_SIGQUEUE)
+        printf("Catcher got %d/%d signals\n", g_catcher_sent, to_send);
+
+    printf("Sender got %d/%d signals\n", g_num_received, to_send);
+
+    return 0;
+}
+#ifndef JK_ZAD1_INC_ZAD1_H
+#define JK_ZAD1_INC_ZAD1_H
+
+#include <stddef.h>
+
+typedef struct block_t
+{
+    size_t size;
+    void *data;
+} block_t;
+
+typedef struct barr_t
+{
+    size_t size;
+    block_t **blocks;
+} barr_t;
+
+/**
+ * Allocate an empty block array.
+ *
+ * @param size Number of blocks.
+ * @return Pointer to block array or NULL if error.
+ */
+barr_t* barr_alloc(size_t size);
+
+/**
+ * Delete a block array.
+ * Frees memory pointed to by barr.
+ *
+ * @param barr Pointer to block array.
+ */
+void barr_free(barr_t *barr);
+
+/**
+ * Load file contents into a free block.
+ *
+ * @param barr Pointer to block array.
+ * @param in_file_fd Input file descriptor.
+ * @param new_index [Output] Index of created block.
+ * @return 0 or negative error.
+ */
+int barr_block_load(barr_t *barr, int in_file_fd, size_t *new_index);
+
+/**
+ * Delete block at index.
+ *
+ * @param barr Pointer to block array.
+ * @param b_index Block index.
+ * @return 0 if successful, else error.
+ */
+int barr_block_delete(barr_t *barr, size_t b_index);
+
+/**
+ * Calls wc on in_file and writes results
+ * to new temporary file.
+ * User MUST close created file.
+ *
+ * @param in_filename Input file path.
+ * @return Created file descriptor or negative error.
+ */
+int generate_stats_file(const char *in_filename);
+
+#endif
+#ifndef JK_ZAD2_SRC_INC_BENCH_H
+#define JK_ZAD2_SRC_INC_BENCH_H
+
+int benchmarks_run(int num_files, char **files);
+
+#endif
+#ifndef JK_ZAD2_SRC_INC_CLI_H
+#define JK_ZAD2_SRC_INC_CLI_H
+
+int cli_process_commands(int argc, char **argv);
+
+#endif
+#ifndef JK_ZAD2_SRC_INC_CMD_H
+#define JK_ZAD2_SRC_INC_CMD_H
+
+typedef enum cmd_t
+{
+    CMD_INVALID,
+    CMD_CREATE_TABLE,
+    CMD_WC_FILES,
+    CMD_REMOVE_BLOCK,
+} cmd_t;
+
+static const char CMD_CREATE_TABLE_STR[] = "create_table";
+static const char CMD_WC_FILES_STR[] = "wc_files";
+static const char CMD_REMOVE_BLOCK_STR[] = "remove_block";
+
+cmd_t cmd_parse(const char *cmd);
+
+#endif
+#ifndef JK_ZAD2_SRC_INC_TIME_UTILS_H
+#define JK_ZAD2_SRC_INC_TIME_UTILS_H
+
+#include <sys/resource.h>
+#include <time.h>
+
+typedef struct bench_t
+{
+    struct timespec ts;
+    struct rusage r_usage_self;
+    struct rusage r_usage_children;
+
+    double rtime;
+    double utime;
+    double stime;
+} bench_t;
+
+/**
+ * Start time measurement.
+ *
+ * @param bench Timekeeping structure.
+ */
+void bench_start(bench_t *bench);
+
+/**
+ * Stop time measurement
+ * and save durations.
+ *
+ * @param bench Timekeeping structure.
+ */
+void bench_stop(bench_t *bench);
+
+void bench_print(const bench_t *bench);
+
+#endif
+#ifndef JK_ZAD2_SRC_INC_ZAD1_LIB_H
+#define JK_ZAD2_SRC_INC_ZAD1_LIB_H
+
+/*
+ * Library loading mechanism:
+ * 1. If compiled without ZAD1_LIB_DLL, expects
+ *    the linker to link to static/shared lib.
+ * 2. If compiled with ZAD1_LIB_DLL, will attempt
+ *    loading the shared lib during runtime:
+ *    - will first try OS paths looking for ZAD1_LIB_FILE
+ *    - fill fallback to hardcoded ZAD1_LIB_PATH absolute path
+ */
+
+#ifdef ZAD1_LIB_DLL
+
+int zad1_lib_load();
+
+#endif
+
+#endif
+#ifndef JK_02_01_LIBCOPY_H
+#define JK_02_01_LIBCOPY_H
+
+#if !defined(IMPL_SYS) && !defined(IMPL_LIB)
+#define IMPL_LIB
+#endif
+
+/**
+ * Copy contents of input file
+ * into output file
+ * skipping empty lines.
+ *
+ * @param in_path Input file path.
+ * @param out_path Output file path.
+ * @return 0 or negative error.
+ */
+int copy_file(const char *in_path, const char *out_path);
+
+#endif
+#ifndef JK_02_02_LIBCOUNT_H
+#define JK_02_02_LIBCOUNT_H
+
+#if !defined(IMPL_LIB) && !defined(IMPL_SYS)
+#define IMPL_LIB
+#endif
+
+typedef struct char_stats_t
+{
+    int n_chars;
+    int n_lines;
+} char_stats_t;
+
+/**
+ * Count occurrences of char c
+ * and lines containing c.
+ *
+ * @param file Input file path.
+ * @param stats Output stats struct.
+ * @return 0 or negative error.
+ */
+int count_chars(const char *file, char c, char_stats_t *stats);
+
+#endif
+#ifndef JK_02_03_WALKDIR_H
+#define JK_02_03_WALKDIR_H
+
+#if !defined(IMPL_STAT) && !defined(IMPL_NFTW)
+#define IMPL_STAT
+#endif
+
+typedef struct dir_stats_t
+{
+    int n_fifo;
+    int n_chr;
+    int n_dir;
+    int n_blk;
+    int n_reg;
+    int n_link;
+    int n_sock;
+} dir_stats_t;
+
+/**
+ * Walk directory and save statistics.
+ *
+ * @param path Input directory.
+ * @param stats Output statistics.
+ * @return 0 or negative error.
+ */
+int walk_dir(const char *path, dir_stats_t *stats);
+
+#endif
+#ifndef JK_03_02_CALCULATOR_H
+#define JK_03_02_CALCULATOR_H
+
+int run_calculator(double dx, int n_proc);
+
+#endif
+#ifndef JK_03_03_FORK_SEARCH_H
+#define JK_03_03_FORK_SEARCH_H
+
+int fork_search(const char path[], const char pattern[], long depth);
+
+#endif
+NAME := KarbowskiJakub
+
+CW_DIRS := $(wildcard cw*)
+TARS := $(CW_DIRS:cw%=$(NAME)-cw%.tar.gz)
+ALL_FILES := $(shell find cw*)
+EXCLUDE := build .*
+
+.PHONY: all
+all: $(TARS)
+
+.PHONY: clean
+clean:
+	rm -f $(TARS)
+
+$(NAME)-cw%.tar.gz: cw% $(ALL_FILES)
+	cd $< && tar czf ../$@ $(EXCLUDE:%=--exclude='%') $(NAME)
+
+# USER CONFIG
+BUILD_DIR ?= build
+OUT_DIR ?= $(BUILD_DIR)/out
+CFLAGS += -Wall -Werror
+# -----------
+
+OBJ_DIR := $(BUILD_DIR)/obj
+STATIC_DIR := $(OUT_DIR)/static
+SHARED_DIR := $(OUT_DIR)/shared
+
+SRC_DIR := src
+INC_DIR := $(SRC_DIR)/inc
+
+SRCS := $(shell find $(SRC_DIR) -type f -and -name "*.c" -print)
+HDRS := $(shell find $(INC_DIR) -type f -and -name "*.h" -print)
+OBJS := $(SRCS:%.c=$(OBJ_DIR)/%.o)
+
+CFLAGS += -I$(INC_DIR)
+
+
+.PHONY: all
+all: static shared
+
+.PHONY: help
+help:
+	@echo 'make all       - compile everything'
+	@echo 'make static    - compile static lib'
+	@echo 'make shared    - compile shared lib'
+	@echo 'make static_Ox - compile static lib with -Ox flag'
+	@echo 'make shared_Ox - compile shared lib with -Ox flag'
+
+# default O level for static
+.PHONY: static
+static: static_O2
+
+# default O level for shared
+.PHONY: shared
+shared: shared_O2
+
+
+# all possible O levels for static
+
+.PHONY: static_O0
+static_O0: $(STATIC_DIR)/libzad1O0.a
+
+.PHONY: static_O1
+static_O1: $(STATIC_DIR)/libzad1O1.a
+
+.PHONY: static_O2
+static_O2: $(STATIC_DIR)/libzad1O2.a
+
+.PHONY: static_O3
+static_O3: $(STATIC_DIR)/libzad1O3.a
+
+.PHONY: static_Os
+static_Os: $(STATIC_DIR)/libzad1Os.a
+
+
+# all possible O levels for shared
+
+.PHONY: shared_O0
+shared_O0: $(SHARED_DIR)/libzad1O0.so
+
+.PHONY: shared_O1
+shared_O1: $(SHARED_DIR)/libzad1O1.so
+
+.PHONY: shared_O2
+shared_O2: $(SHARED_DIR)/libzad1O2.so
+
+.PHONY: shared_O3
+shared_O3: $(SHARED_DIR)/libzad1O3.so
+
+.PHONY: shared_Os
+shared_Os: $(SHARED_DIR)/libzad1Os.so
+
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+# all possible O levels for objs
+
+$(OBJ_DIR)/%.O0.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -fPIC -O0 -o $@ $<
+
+$(OBJ_DIR)/%.O1.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -fPIC -O1 -o $@ $<
+
+$(OBJ_DIR)/%.O2.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -fPIC -O2 -o $@ $<
+
+$(OBJ_DIR)/%.O3.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -fPIC -O3 -o $@ $<
+
+$(OBJ_DIR)/%.Os.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -fPIC -Os -o $@ $<
+
+
+# actual static libs
+
+$(STATIC_DIR)/libzad1O0.a: $(OBJS:.o=.O0.o)
+	@mkdir -p $(dir $@)
+	ar rsc $@ $^
+
+$(STATIC_DIR)/libzad1O1.a: $(OBJS:.o=.O1.o)
+	@mkdir -p $(dir $@)
+	ar rsc $@ $^
+
+$(STATIC_DIR)/libzad1O2.a: $(OBJS:.o=.O2.o)
+	@mkdir -p $(dir $@)
+	ar rsc $@ $^
+
+$(STATIC_DIR)/libzad1O3.a: $(OBJS:.o=.O3.o)
+	@mkdir -p $(dir $@)
+	ar rsc $@ $^
+
+$(STATIC_DIR)/libzad1Os.a: $(OBJS:.o=.Os.o)
+	@mkdir -p $(dir $@)
+	ar rsc $@ $^
+
+
+# actual shared libs
+
+$(SHARED_DIR)/libzad1O0.so: $(OBJS:.o=.O0.o)
+	@mkdir -p $(dir $@)
+	$(CC) -shared -o $@ $^
+
+$(SHARED_DIR)/libzad1O1.so: $(OBJS:.o=.O1.o)
+	@mkdir -p $(dir $@)
+	$(CC) -shared -o $@ $^
+
+$(SHARED_DIR)/libzad1O2.so: $(OBJS:.o=.O2.o)
+	@mkdir -p $(dir $@)
+	$(CC) -shared -o $@ $^
+
+$(SHARED_DIR)/libzad1O3.so: $(OBJS:.o=.O3.o)
+	@mkdir -p $(dir $@)
+	$(CC) -shared -o $@ $^
+
+$(SHARED_DIR)/libzad1Os.so: $(OBJS:.o=.Os.o)
+	@mkdir -p $(dir $@)
+	$(CC) -shared -o $@ $^
+
+# USER CONFIG
+BUILD_DIR ?= build
+OUT_DIR ?= $(BUILD_DIR)/out
+BENCH_DIR ?= $(OUT_DIR)/bench
+OLEVEL ?= 2
+CFLAGS += -Wall -Werror
+LDFLAGS +=
+# -----------
+
+OBJ_DIR := $(BUILD_DIR)/obj
+
+SRC_DIR := src
+INC_DIR := $(SRC_DIR)/inc
+
+ZAD1_DIR := $(PWD)/../zad1
+ZAD1_INC_DIR := $(ZAD1_DIR)/src/inc
+ZAD1_STATIC_LIB_DIR := $(ZAD1_DIR)/build/out/static
+ZAD1_SHARED_LIB_DIR := $(ZAD1_DIR)/build/out/shared
+
+INC_DIRS := $(INC_DIR) $(ZAD1_INC_DIR)
+SRCS := $(shell find $(SRC_DIR) -type f -and -name "*.c" -print)
+HDRS := $(shell find $(INC_DIRS) -type f -and -name "*.h" -print)
+OBJS := $(SRCS:%.c=$(OBJ_DIR)/%.o)
+
+CFLAGS += -Wp,$(INC_DIRS:%=-I%)
+
+
+.PHONY: all
+all: zad2
+
+.PHONY: help
+help:
+	@echo 'DO NOT USE -j !!! (please...)'
+	@echo './RUN [ARGS...]         - compile and run with ARGS'
+	@echo 'make clean all OLEVEL=x - compile with -Ox (0, 1, 2, 3, s)'
+	@echo 'make test               - run example'
+	@echo 'make bench              - run benchmarks'
+
+.PHONY: test
+test: zad2
+	$(OUT_DIR)/zad2 create_table 2 wc_files Makefile RUN remove_block 0 wc_files src/main.c
+
+.PHONY: bench
+bench: raport2.txt results3a.txt results3b.txt
+
+
+.PHONY: zad2
+zad2: zad2_static_O$(OLEVEL)
+	cp $(OUT_DIR)/$< $(OUT_DIR)/$@
+
+
+.PHONY: zad2_static_O%
+zad2_static_O%:
+	$(MAKE) deps_static_$(shell echo $@ | cut -d_ -f3)
+	$(MAKE) $(OUT_DIR)/$@
+
+.PHONY: zad2_shared_O%
+zad2_shared_O%:
+	$(MAKE) deps_shared_$(shell echo $@ | cut -d_ -f3)
+	$(MAKE) $(OUT_DIR)/$@
+
+.PHONY: zad2_dll_O%
+zad2_dll_O%:
+	$(MAKE) deps_shared_$(shell echo $@ | cut -d_ -f3)
+	$(MAKE) $(OUT_DIR)/$@
+
+
+.PHONY: deps_static_O%
+deps_static_O%:
+	cd $(ZAD1_DIR) && $(MAKE) static_$(shell echo $@ | cut -d_ -f3)
+
+.PHONY: deps_shared_O%
+deps_shared_O%:
+	cd $(ZAD1_DIR) && $(MAKE) shared_$(shell echo $@ | cut -d_ -f3)
+
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+raport2.txt: $(BENCH_DIR)/static_O$(OLEVEL).txt
+	cat $^ > $@
+
+results3a.txt: $(BENCH_DIR)/static_O$(OLEVEL).txt $(BENCH_DIR)/shared_O$(OLEVEL).txt $(BENCH_DIR)/dll_O$(OLEVEL).txt
+	echo 'OLEVEL=$(OLEVEL)' > $@
+
+	echo '' >> $@
+	echo 'STATIC:' >> $@
+	cat $(BENCH_DIR)/static_O$(OLEVEL).txt >> $@
+
+	echo '' >> $@
+	echo 'SHARED:' >> $@
+	cat $(BENCH_DIR)/shared_O$(OLEVEL).txt >> $@
+
+	echo '' >> $@
+	echo 'DLL:' >> $@
+	cat $(BENCH_DIR)/dll_O$(OLEVEL).txt >> $@
+
+results3b.txt: $(BENCH_DIR)/static_O0.txt $(BENCH_DIR)/static_O1.txt $(BENCH_DIR)/static_O2.txt $(BENCH_DIR)/static_O3.txt $(BENCH_DIR)/static_Os.txt $(BENCH_DIR)/shared_O0.txt $(BENCH_DIR)/shared_O1.txt $(BENCH_DIR)/shared_O2.txt $(BENCH_DIR)/shared_O3.txt $(BENCH_DIR)/shared_Os.txt $(BENCH_DIR)/dll_O0.txt $(BENCH_DIR)/dll_O1.txt $(BENCH_DIR)/dll_O2.txt $(BENCH_DIR)/dll_O3.txt $(BENCH_DIR)/dll_Os.txt
+	echo 'STATIC -O0:' > $@
+	cat $(BENCH_DIR)/static_O0.txt >> $@
+
+	echo '' >> $@
+	echo 'STATIC -O1:' >> $@
+	cat $(BENCH_DIR)/static_O1.txt >> $@
+
+	echo '' >> $@
+	echo 'STATIC -O2:' >> $@
+	cat $(BENCH_DIR)/static_O2.txt >> $@
+
+	echo '' >> $@
+	echo 'STATIC -O3:' >> $@
+	cat $(BENCH_DIR)/static_O3.txt >> $@
+
+	echo '' >> $@
+	echo 'STATIC -Os:' >> $@
+	cat $(BENCH_DIR)/static_Os.txt >> $@
+
+
+	echo '' >> $@
+	echo 'SHARED -O0:' >> $@
+	cat $(BENCH_DIR)/shared_O0.txt >> $@
+
+	echo '' >> $@
+	echo 'SHARED -O1:' >> $@
+	cat $(BENCH_DIR)/shared_O1.txt >> $@
+
+	echo '' >> $@
+	echo 'SHARED -O2:' >> $@
+	cat $(BENCH_DIR)/shared_O2.txt >> $@
+
+	echo '' >> $@
+	echo 'SHARED -O3:' >> $@
+	cat $(BENCH_DIR)/shared_O3.txt >> $@
+
+	echo '' >> $@
+	echo 'SHARED -Os:' >> $@
+	cat $(BENCH_DIR)/shared_Os.txt >> $@
+
+
+	echo '' >> $@
+	echo 'DLL -O0:' >> $@
+	cat $(BENCH_DIR)/dll_O0.txt >> $@
+
+	echo '' >> $@
+	echo 'DLL -O1:' >> $@
+	cat $(BENCH_DIR)/dll_O1.txt >> $@
+
+	echo '' >> $@
+	echo 'DLL -O2:' >> $@
+	cat $(BENCH_DIR)/dll_O2.txt >> $@
+
+	echo '' >> $@
+	echo 'DLL -O3:' >> $@
+	cat $(BENCH_DIR)/dll_O3.txt >> $@
+
+	echo '' >> $@
+	echo 'DLL -Os:' >> $@
+	cat $(BENCH_DIR)/dll_Os.txt >> $@
+
+
+$(BENCH_DIR)/static_O%.txt: zad2_static_O%
+	@mkdir -p $(dir $@)
+	$(OUT_DIR)/$< bench $(shell find .. -name "*.c" -or -name "*.h") > $@
+
+$(BENCH_DIR)/shared_O%.txt: zad2_shared_O%
+	@mkdir -p $(dir $@)
+	LD_LIBRARY_PATH="$(ZAD1_SHARED_LIB_DIR):$(LD_LIBRARY_PATH)" $(OUT_DIR)/$< bench $(shell find .. -name "*.c" -or -name "*.h") > $@
+
+$(BENCH_DIR)/dll_O%.txt: zad2_dll_O%
+	@mkdir -p $(dir $@)
+	LD_LIBRARY_PATH="$(ZAD1_SHARED_LIB_DIR):$(LD_LIBRARY_PATH)" $(OUT_DIR)/$< bench $(shell find .. -name "*.c" -or -name "*.h") > $@
+
+
+$(OBJ_DIR)/%.O0.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -O0 -c -o $@ $<
+
+$(OBJ_DIR)/%.O1.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -O1 -c -o $@ $<
+
+$(OBJ_DIR)/%.O2.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -O2 -c -o $@ $<
+
+$(OBJ_DIR)/%.O3.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -O3 -c -o $@ $<
+
+$(OBJ_DIR)/%.Os.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Os -c -o $@ $<
+
+
+$(OBJ_DIR)/%.O0.dll.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DZAD1_LIB_DLL=1,-DZAD1_LIB_PATH="\"$(ZAD1_SHARED_LIB_DIR)/libzad1O0.so\"",-DZAD1_LIB_FILE="\"libzad1O0.so\"" -O0 -c -o $@ $<
+
+$(OBJ_DIR)/%.O1.dll.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DZAD1_LIB_DLL=1,-DZAD1_LIB_PATH="\"$(ZAD1_SHARED_LIB_DIR)/libzad1O1.so\"",-DZAD1_LIB_FILE="\"libzad1O1.so\"" -O1 -c -o $@ $<
+
+$(OBJ_DIR)/%.O2.dll.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DZAD1_LIB_DLL=1,-DZAD1_LIB_PATH="\"$(ZAD1_SHARED_LIB_DIR)/libzad1O2.so\"",-DZAD1_LIB_FILE="\"libzad1O2.so\"" -O2 -c -o $@ $<
+
+$(OBJ_DIR)/%.O3.dll.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DZAD1_LIB_DLL=1,-DZAD1_LIB_PATH="\"$(ZAD1_SHARED_LIB_DIR)/libzad1O3.so\"",-DZAD1_LIB_FILE="\"libzad1O3.so\"" -O3 -c -o $@ $<
+
+$(OBJ_DIR)/%.Os.dll.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DZAD1_LIB_DLL=1,-DZAD1_LIB_PATH="\"$(ZAD1_SHARED_LIB_DIR)/libzad1Os.so\"",-DZAD1_LIB_FILE="\"libzad1Os.so\"" -Os -c -o $@ $<
+
+
+$(OUT_DIR)/zad2_static_O0: $(OBJS:.o=.O0.o) $(ZAD1_STATIC_LIB_DIR)/libzad1O0.a
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_STATIC_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1O0,-lc
+
+$(OUT_DIR)/zad2_static_O1: $(OBJS:.o=.O1.o) $(ZAD1_STATIC_LIB_DIR)/libzad1O1.a
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_STATIC_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1O1,-lc
+
+$(OUT_DIR)/zad2_static_O2: $(OBJS:.o=.O2.o) $(ZAD1_STATIC_LIB_DIR)/libzad1O2.a
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_STATIC_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1O2,-lc
+
+$(OUT_DIR)/zad2_static_O3: $(OBJS:.o=.O3.o) $(ZAD1_STATIC_LIB_DIR)/libzad1O3.a
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_STATIC_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1O3,-lc
+
+$(OUT_DIR)/zad2_static_Os: $(OBJS:.o=.Os.o) $(ZAD1_STATIC_LIB_DIR)/libzad1Os.a
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_STATIC_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1Os,-lc
+
+
+
+$(OUT_DIR)/zad2_shared_O0: $(OBJS:.o=.O0.o) $(ZAD1_SHARED_LIB_DIR)/libzad1O0.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_SHARED_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1O0,-lc
+
+$(OUT_DIR)/zad2_shared_O1: $(OBJS:.o=.O1.o) $(ZAD1_SHARED_LIB_DIR)/libzad1O1.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_SHARED_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1O1,-lc
+
+$(OUT_DIR)/zad2_shared_O2: $(OBJS:.o=.O2.o) $(ZAD1_SHARED_LIB_DIR)/libzad1O2.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_SHARED_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1O2,-lc
+
+$(OUT_DIR)/zad2_shared_O3: $(OBJS:.o=.O3.o) $(ZAD1_SHARED_LIB_DIR)/libzad1O3.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_SHARED_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1O3,-lc
+
+$(OUT_DIR)/zad2_shared_Os: $(OBJS:.o=.Os.o) $(ZAD1_SHARED_LIB_DIR)/libzad1Os.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -Wl,-L$(ZAD1_SHARED_LIB_DIR) -o $@ $(filter %.o,$^) -Wl,-lzad1Os,-lc
+
+
+$(OUT_DIR)/zad2_dll_O0: $(OBJS:.o=.O0.dll.o) $(ZAD1_SHARED_LIB_DIR)/libzad1O0.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $(filter %.o,$^) -Wl,-lc
+
+$(OUT_DIR)/zad2_dll_O1: $(OBJS:.o=.O1.dll.o) $(ZAD1_SHARED_LIB_DIR)/libzad1O1.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $(filter %.o,$^) -Wl,-lc
+
+$(OUT_DIR)/zad2_dll_O2: $(OBJS:.o=.O2.dll.o) $(ZAD1_SHARED_LIB_DIR)/libzad1O2.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $(filter %.o,$^) -Wl,-lc
+
+$(OUT_DIR)/zad2_dll_O3: $(OBJS:.o=.O3.dll.o) $(ZAD1_SHARED_LIB_DIR)/libzad1O3.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $(filter %.o,$^) -Wl,-lc
+
+$(OUT_DIR)/zad2_dll_Os: $(OBJS:.o=.Os.dll.o) $(ZAD1_SHARED_LIB_DIR)/libzad1Os.so
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $(filter %.o,$^) -Wl,-lc
+
+# USER CONFIG
+BUILD_DIR ?= build
+OUT_DIR ?= $(BUILD_DIR)/out
+OLEVEL ?= 2
+CFLAGS += -Wall -Werror
+LDFLAGS +=
+# -----------
+
+OBJ_DIR := $(BUILD_DIR)/obj
+BENCH_DIR := $(BUILD_DIR)/bench
+
+SRC_DIR := src
+INC_DIR := $(SRC_DIR)/inc
+
+INC_DIRS := $(INC_DIR)
+SRCS := $(shell find $(SRC_DIR) -type f -and -name "*.c" -print)
+HDRS := $(shell find $(INC_DIRS) -type f -and -name "*.h" -print)
+OBJS := $(SRCS:%.c=$(OBJ_DIR)/%.o)
+
+CFLAGS += -Wp,$(INC_DIRS:%=-I%) -O$(OLEVEL) -std=gnu99
+
+
+.PHONY: all
+all: $(OUT_DIR)/zad1 lib sys
+
+.PHONY: lib
+lib: $(OUT_DIR)/zad1_lib
+
+.PHONY: sys
+sys: $(OUT_DIR)/zad1_sys
+
+.PHONY: help
+help:
+	@echo './RUN [ARGS]     - run program'
+	@echo './RUN_LIB [ARGS] - run program (lib implementation)'
+	@echo './RUN_SYS [ARGS] - run program (sys implementation)'
+	@echo 'make bench       - run benchmarks'
+
+.PHONY: bench
+bench: pomiar_zad_1.txt
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+pomiar_zad_1.txt: $(OUT_DIR)/zad1_sys $(OUT_DIR)/zad1_lib $(BENCH_DIR)/input comments.txt
+	@echo 'SYS:' > $@
+	(time -p $(OUT_DIR)/zad1_sys $(BENCH_DIR)/input $(BENCH_DIR)/output) 2>> $@
+
+	@echo 'LIB:' >> $@
+	(time -p $(OUT_DIR)/zad1_lib $(BENCH_DIR)/input $(BENCH_DIR)/output) 2>> $@
+
+	@echo '' >> $@
+	@cat comments.txt >> $@
+
+
+$(BENCH_DIR)/input: $(shell find $(SRC_DIR) -type f) Makefile
+	@mkdir -p $(dir $@)
+	@rm -f $@
+	@echo 'Generating input file'
+	@for i in `seq 1 5000`; do cat $^ >> $@; done
+
+
+$(OBJ_DIR)/%.lib.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DIMPL_LIB -c -o $@ $<
+
+$(OBJ_DIR)/%.sys.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wp,-DIMPL_SYS -c -o $@ $<
+
+$(OUT_DIR)/zad1_lib: $(OBJS:.o=.lib.o)
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $^ -Wl,-lc
+
+$(OUT_DIR)/zad1_sys: $(OBJS:.o=.sys.o)
+	@mkdir -p $(dir $@)
+	$(CC) $(LDFLAGS) -o $@ $^ -Wl,-lc
+
+$(OUT_DIR)/zad1: $(OUT_DIR)/zad1_lib
+	cp $< $@
+# USER CONFIG
+BUILD_DIR ?= build
+OUT_DIR ?= $(BUILD_DIR)/out
+OLEVEL ?= 2
+CFLAGS += -Wall -Werror
+LDFLAGS +=
+# -----------
+
+OBJ_DIR := $(BUILD_DIR)/obj
+BENCH_DIR := $(BUILD_DIR)/bench
+
+SRC_DIR := src
+INC_DIR := $(SRC_DIR)/inc
+
+INC_DIRS := $(INC_DIR)
+SRCS := $(shell find $(SRC_DIR) -type f -and -name "*.c" -print)
+HDRS := $(shell find $(INC_DIRS) -type f -and -name "*.h" -print)
+OBJS := $(SRCS:%.c=$(OBJ_DIR)/%.o)
+
+CFLAGS += -Wp,$(INC_DIRS:%=-I%) -O$(OLEVEL) -std=gnu99
+
+
+.PHONY: all
+all: $(OUT_DIR)/zad2 lib sys
+
+.PHONY: lib
+lib: $(OUT_DIR)/zad2_lib
+
+.PHONY: sys
+sys: $(OUT_DIR)/zad2_sys
+
+.PHONY: help
+help:
+	@echo './RUN [ARGS]     - run program'
+	@echo './RUN_LIB [ARGS] - run program (lib implementation)'
+	@echo './RUN_SYS [ARGS] - run program (sys implementation)'
+	@echo 'make bench       - run benchmarks'
+
+.PHONY: bench
+bench: pomiar_zad_2.txt
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+pomiar_zad_2.txt: $(OUT_DIR)/zad2_sys $(OUT_DIR)/zad2_lib $(BENCH_DIR)/input comments.txt
+	@echo 'SYS:' > $@
+	(time -p $(OUT_DIR)/zad2_sys a $(BENCH_DIR)/input) 2>> $@
+
+	@echo 'LIB:' >> $@
+	(time -p $(OUT_DIR)/zad2_lib a $(BENCH_DIR)/input) 2>> $@
+
+	@echo '' >> $@
+	@cat comments.txt >> $@
+
+
+$(BENCH_DIR)/input: $(shell find $(SRC_DIR) -type f) Makefile
+	@mkdir -p $(dir $@)
+------------ SEND PING

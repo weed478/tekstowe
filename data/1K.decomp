@@ -1,0 +1,54 @@
+static_O0: $(STATIC_DIR)/libzad1O0.a
+
+.PHONY: static_O1
+static_O1: $(STATIC_DIR)/libzad1O1.a
+
+.PHONY: static_O2
+static_O2: $(STATIC_DIR)/libzad1O2.a
+
+.PHONY: static_O3
+static_O3: $(STATIC_DIR)/libzad1O3.a
+
+.PHONY: static_Os
+static_Os: $(STATIC_DIR)/libzad1Os.a
+
+
+# all possible O levels for shared
+
+.PHONY: shared_O0
+shared_O0: $(SHARED_DIR)/libzad1O0.so
+
+.PHONY: shared_O1
+shared_O1: $(SHARED_DIR)/libzad1O1.so
+
+.PHONY: shared_O2
+shared_O2: $(SHARED_DIR)/libzad1O2.so
+
+.PHONY: shared_O3
+shared_O3: $(SHARED_DIR)/libzad1O3.so
+
+.PHONY: shared_Os
+shared_Os: $(SHARED_DIR)/libzad1Os.so
+
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR) $(OUT_DIR)
+
+
+# all possible O levels for objs
+
+$(OBJ_DIR)/%.O0.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -fPIC -O0 -o $@ $<
+
+$(OBJ_DIR)/%.O1.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -fPIC -O1 -o $@ $<
+
+$(OBJ_DIR)/%.O2.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -fPIC -O2 -o $@ $<
+
+$(OBJ_DIR)/%.O3.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
